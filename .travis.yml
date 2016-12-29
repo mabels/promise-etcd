@@ -1,0 +1,13 @@
+language: node_js
+
+node_js:
+    - "6"
+
+before_install:
+  - sh build_etcd.sh v3.0.15
+
+#install:
+
+#script:
+#    - npm install
+#    - npm test
