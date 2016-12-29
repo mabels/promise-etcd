@@ -9,7 +9,7 @@
     "build": "webpack",
     "build:watch": "webpack --watch --debug --output-pathinfo --progress",
     "pretest": "npm run build",
-    "test": "mocha dist/test",
+    "test": "mocha --require ./dist/etcd_daemon.js dist/test",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -w",
     "preversion": "npm test",
     "version": "npm run build && conventional-changelog -p angular -v -r 0 > CHANGELOG.md && git add -A .",

@@ -12,6 +12,16 @@ function param(arr: string[], uuid: string) : string[] {
 
 describe("etcd", function() {
   this.timeout(2000)
+  before(async () => {
+    let wc = etcd.Config.start([
+      "--etcd-req-timeout", "50",
+      '--etcd-url', "http://localhost:2379"
+    ])
+    let etc = etcd.Etcd.create(wc);
+    await etc.connect()
+    console.log("etcd Cluster Booted")
+    return Promise.resolve("done")
+  })
   it("AsyncPromise Blocking", async () => {
     let value = 1
     let test = new Promise(async (r,j) => {
@@ -32,6 +42,7 @@ describe("etcd", function() {
     let etc = etcd.Etcd.create(wc);
     let ret = await etc.clusterState();
     assert.equal(1, ret.length)
+    // console.log(ret[0])
     assert.equal(ret[0].isOk(), true)
     assert.equal(ret[0].url, "http://localhost:2379")
     return Promise.resolve("done")

@@ -13,9 +13,13 @@ class EtcdDaemon {
   }
   public static start() : EtcdDaemon {
     let ret = new EtcdDaemon();
-    ret.etcdir = fs.mkdtempSync("certor-test-")
-    console.log("CREATED:", ret.etcdir)
-    ret.etcd = cp.spawn('etcd', ['--data-dir', ret.etcdir])
+    ret.etcdir = fs.mkdtempSync("promise-test-")
+    let etcdExec = "etcd"
+    if (fs.existsSync(`${process.env['HOME']}/etcd/etcd`)) {
+      etcdExec = `${process.env['HOME']}/etcd/etcd`
+    }
+    console.log("CREATED:", ret.etcdir, etcdExec)
+    ret.etcd = cp.spawn(etcdExec, ['--data-dir', ret.etcdir])
     ret.etcd.on('error', (err) => {
       console.error("can't spawn etcd")
     });

@@ -365,18 +365,23 @@ export class Etcd {
   public async connect() : Promise<SelfState> {
     // console.log("meno-1")
     if (!this.connected) {
-      // console.log("meno-2")
-      let ret = await this.untilFirstConnect()
-      // console.log("meno-3")
-      let foundOk = ret.find((s2) => s2.isOk())
-      if (foundOk) {
-        // console.log("meno-4")
-        this.connected = foundOk
-        return Promise.resolve(foundOk)
-      } else {
-        // console.log("meno-5")
-        return Promise.resolve(SelfState.error("all", ret))
+      let ret = null;
+      for (let retry = 0; retry < this.cfg.retries; ++retry) {
+        // console.log("meno-2")
+        ret = await this.untilFirstConnect()
+        // console.log("meno-3")
+        let foundOk = ret.find((s2) => s2.isOk())
+        if (foundOk) {
+          // console.log("meno-4")
+          this.connected = foundOk
+          return Promise.resolve(foundOk)
+        } 
+        console.log("Retry-Connect:", retry, this.cfg.waitTime)
+        await new Promise((res, rej) => {
+          setTimeout(res, this.cfg.waitTime);
+        })
       }
+      return Promise.resolve(SelfState.error("all", ret))
     } else {
       return Promise.resolve(this.connected)
     }

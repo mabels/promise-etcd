@@ -5,9 +5,11 @@ node_js:
     - "6"
 
 before_install:
-  - sh ./build_etcd.sh v3.0.15
-  - ls -l 
-  - go version 
+  - mkdir $HOME/etcd
+  - git clone https://github.com/coreos/etcd.git $HOME/etcd
+  - (cd $HOME/etcd && git checkout -b v3.0.15 v3.0.15) 
+  - export GOPATH=$HOME/etcd
+  - (cd $HOME/etcd && go get && go build)
 
 #install:
 
