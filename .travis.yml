@@ -1,10 +1,13 @@
 language: node_js
+dist: trusty
 
 node_js:
     - "6"
 
 before_install:
-  - sh build_etcd.sh v3.0.15
+  - sh ./build_etcd.sh v3.0.15
+  - ls -l 
+  - go version 
 
 #install:
 
