@@ -8,7 +8,7 @@ import * as os from 'os'
 import * as path from 'path'
 
 
-class WaitMaster {
+export class WaitMaster {
   etc: etcd.Etcd
   reqStop: boolean = false
   stopped: boolean = false
@@ -158,4 +158,4 @@ class WaitMaster {
   }
 }
 
-export default WaitMaster
+//export default WaitMaster

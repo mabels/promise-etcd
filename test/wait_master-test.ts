@@ -6,15 +6,15 @@ import { assert } from 'chai';
 
 import * as Uuid from 'node-uuid'
 
-import * as etcd from '../src/etcd'
+import * as etcd from '../src/index'
 
-import WaitMaster from '../src/wait_master'
+// import WaitMaster from '../src/wait_master'
 
 function param(arr: string[], uuid: string) : string[] {
   return arr.concat(['--etcd-cluster-id', uuid, '--etcd-url', "http://localhost:2379"])
 }
 
-function masterCount(wms: WaitMaster[]) {
+function masterCount(wms: etcd.WaitMaster[]) {
     let masterCount = 0;
     for (let i = 0; i < wms.length; ++i) {
       if (wms[i].master) {
@@ -24,7 +24,7 @@ function masterCount(wms: WaitMaster[]) {
     return masterCount
 }
 
-function stopCount(wms: WaitMaster[]) {
+function stopCount(wms: etcd.WaitMaster[]) {
     let stopCount = 0;
     for (let i = 0; i < wms.length; ++i) {
       if (wms[i].stopped) {
@@ -34,11 +34,11 @@ function stopCount(wms: WaitMaster[]) {
     return stopCount
 }
 
-function slaves(wms: WaitMaster[]) : WaitMaster[] {
+function slaves(wms: etcd.WaitMaster[]) : etcd.WaitMaster[] {
   return wms.filter((wm) => !wm.master)
 }
 
-function master(wms: WaitMaster[]) : WaitMaster {
+function master(wms: etcd.WaitMaster[]) : etcd.WaitMaster {
   return wms.find((wm) => wm.master)
 }
 function mastersSum(masters: number[]) : number {
@@ -53,11 +53,11 @@ describe("wait-master", function() {
     let wc = etcd.Config.start([])
     let etc = etcd.Etcd.create(wc);
     let masters : number[] = []
-    let waitMasters : WaitMaster[] = []
+    let waitMasters : etcd.WaitMaster[] = []
     let totalWaiters = 10
     for (let i = 0; i < totalWaiters; ++i) {
       masters[i] = 0;
-      let wm = await WaitMaster.create(uuid, etc, 100, 100, 
+      let wm = await etcd.WaitMaster.create(uuid, etc, 100, 100, 
         ((id) : () => void => { return () => { ++masters[id] } })(i), 
         ((id) : () => void => { return () => { --masters[id] } })(i),
       )
@@ -78,7 +78,7 @@ describe("wait-master", function() {
     assert.equal(masterCount(waitMasters), 1, "master count 1 H")  
     assert.equal(stopCount(waitMasters), 2, "stop count 1 I")  
 
-    let wm = await WaitMaster.create(uuid, etc, 100, 100, 
+    let wm = await etcd.WaitMaster.create(uuid, etc, 100, 100, 
       () => assert("will not get the master"), () => assert("do not stop"))
     await new Promise((res, rej) => { setTimeout(res, 150) });
     await wm.stop()

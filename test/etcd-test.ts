@@ -3,7 +3,7 @@ import { assert } from 'chai';
 
 import * as Uuid from 'node-uuid'
 
-import * as etcd from '../src/etcd'
+import * as etcd from '../src/index'
 
 
 function param(arr: string[], uuid: string) : string[] {
