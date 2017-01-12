@@ -195,9 +195,24 @@ describe("etcd", function() {
     assert.equal(lst.value.length, [])
 
     ret = await etc.rmdir("meno")
-    // console.log(ret)
     assert.equal(ret.isOk(), true)
   })
+
+  it("get/setRaw", async () => {
+    let uuid = Uuid.v4().toString();
+    let wc = etcd.Config.start(["--etcd-cluster-id", uuid])
+    let etc = etcd.Etcd.create(wc);
+
+    let ret = await etc.getRaw("hammer/murk")
+    assert.equal(ret.isErr(), true)
+    ret = await etc.setRaw("hammer/murk", "Hello World")
+    assert.equal(ret.isErr(), false)
+    ret = await etc.getRaw("hammer/murk")
+    assert.equal(ret.isOk(), true)
+    // console.log(ret.node)
+    assert.equal(ret.node.value, "Hello World")
+  })
+
 
 })
 

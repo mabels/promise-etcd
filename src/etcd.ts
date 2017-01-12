@@ -69,19 +69,25 @@ export class EtcError {
   unknown? : any
   public static fromJson(err: any) {
     let ee = new EtcError()
+    //let o = []
+    //for (let i in err) {
+    //  o.push(i)
+    //}
+    //console.log("fromJson EtcError:", typeof(err), o)
 
     if (typeof(err) == "RequestError") {
-      console.log("RequestError:", err)
+      //console.log("RequestError:", err)
       // ee.reqErr = rqErr.RequestErrorConstructor(err['cause'], err['options'], err['response'])
       return ee;
     }
-    if (typeof(err) == "StatusCodeError") {
-      console.log("StatusCodeError:", err)
-      // ee.statusErr = new rqErr.StatusCodeErrorConstructor(statusCode: number, body: any, options: rp.Options, response: http.IncomingMessage)
+    if (typeof(err.statusCode) == 'number' && err.statusCode != 200) {
+      // console.log("StatusCodeError:", err)
+      ee.statusErr = err
+      //new rqErr.StatusCodeErrorConstructor(statusCode: err.statusCode, body: err.body, options: err.optios, response: http.IncomingMessage)
       return ee;
     }
     if (typeof(err) == "TransformError") {
-      console.log("TransformError:", err)
+      // console.log("TransformError:", err)
       // ee.transErr = new rqErr.TransformErrorConstructor(cause: any, options: rp.Options, response: http.IncomingMessage)
       return ee;
     }
@@ -102,7 +108,8 @@ export class EtcValue<T> {
 
   public static error<T>(res : any) : EtcValue<T> {
     let ej = new EtcValue<T>()
-    console.log("ERROR", res)
+    ej.err = res
+    // console.log("ERROR", res)
     // ej.err = EtcErrorFactory(res)
     return ej
   }
@@ -263,7 +270,7 @@ export class Etcd {
   private async request(method: string, url: string, options : any = {}) : Promise<any> {
     let c = await this.connect()
     if (!c.isOk()) {
-      console.log("Request-REJECT no valid connection")
+      console.error("Request-REJECT no valid connection")
       return Promise.reject(c)
     }
     try {
@@ -272,7 +279,7 @@ export class Etcd {
       if (e.name == "StatusCodeError") {
         return Promise.reject(e)
       }
-      console.log("Reconned:", typeof e, e.name, e)
+      console.error("Reconnected:", typeof e, e.name, e)
       this.connected = null // reconnect etcd
       return this.request(method, url, options)
     }
@@ -527,9 +534,10 @@ export class Etcd {
   }
 
   public async setRaw(key: string, val: string) : Promise<EtcResponse> {
-    let uri = this.buildKeyUri('/v2/keys', key)
+    //let uri = this.buildKeyUri('/v2/keys', key)
+    //console.log("setRaw:", uri) 
     try {
-      let ret = await this.keyAction("PUT", uri, this.bodyParams({ value: val }))
+      let ret = await this.keyAction("PUT", key, this.bodyParams({ value: val }))
       return Promise.resolve(ret)
     } catch (err) {
       return Promise.resolve(EtcResponse.error(err))
