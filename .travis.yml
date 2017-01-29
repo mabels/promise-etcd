@@ -1,11 +1,12 @@
 language: node_js
-sudo: required
+#sudo: required
 node_js:
     - "6"
 dist: trusty
 
 before_install:
   - mkdir $HOME/etcd
+  - gimme 1.7.5    
   - git clone https://github.com/coreos/etcd.git $HOME/etcd
   - (cd $HOME/etcd && git checkout -b v3.0.15 v3.0.15) 
   - (export GOPATH=$HOME/.go ; mkdir -p $GOPATH ; cd $HOME/etcd && go get ; go build)
