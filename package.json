@@ -27,7 +27,7 @@
   "homepage": "https://github.com/mabels/promise-etcd#readme",
   "devDependencies": {
     "@types/chai": ">=3.4.33",
-    "@types/mocha": ">=2.2.33",
+    "@types/mocha": "2.2.38",
     "babel-core": ">=6.9.1",
     "babel-plugin-syntax-async-functions": "^6.1.4",
     "babel-plugin-transform-async-to-plain-generator": "1.0.1",
