@@ -1,6 +1,6 @@
 {
   "name": "promise-etcd",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "promise based etcd api includes master election for workers",
   "main": "./promise-etcd.js",
   "scripts": {
@@ -28,11 +28,6 @@
   "devDependencies": {
     "@types/chai": ">=3.4.33",
     "@types/mocha": ">=2.2.33",
-    "babel-core": ">=6.9.1",
-    "babel-plugin-syntax-async-functions": "^6.1.4",
-    "babel-plugin-transform-async-to-plain-generator": "1.0.1",
-    "babel-plugin-transform-es2015-modules-commonjs": ">=6.10.3",
-    "babel-plugin-transform-regenerator": "^6.1.4",
     "chai": ">=3.5.0",
     "cz-conventional-changelog": ">=1.1.6",
     "globby": ">=5.0.0",
@@ -46,13 +41,8 @@
     "webpack": ">=1.14.0"
   },
   "dependencies": {
-    "@types/es6-shim": ">=0.31.32",
     "@types/node-uuid": ">=0.0.28",
     "@types/request-promise": ">=4.1.33",
-    "babel-polyfill": "^6.1.4",
-    "babel-preset-es2015": "^6.1.4",
-    "babel-preset-es2016": "^6.1.4",
-    "es6-shim": ">=0.35.2",
     "node-uuid": ">=1.4.7",
     "request-promise": ">=4.1.1",
     "request": ">=2.60"

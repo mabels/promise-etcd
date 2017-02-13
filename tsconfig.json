@@ -1,12 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ES6",
     "module": "commonjs",
     "outDir": "dist",
     "noImplicitAny": true,
-    "pretty": true,
-    "jsx": "react",
-    "lib": [ "ES5" ]
+    "pretty": true
   },
   "exclude": [
     "node_modules"
