@@ -43,7 +43,7 @@
   "dependencies": {
     "@types/node-uuid": ">=0.0.28",
     "@types/request-promise": ">=4.1.33",
-    "node-uuid": ">=1.4.7",
+    "node-uuid": "1.4.7",
     "request-promise": ">=4.1.1",
     "request": ">=2.60"
   },
