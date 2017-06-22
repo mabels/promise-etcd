@@ -12,7 +12,7 @@ class EtcdDaemon {
     if (fs.existsSync(`${process.env['HOME']}/etcd/etcd`)) {
       etcdExec = `${process.env['HOME']}/etcd/etcd`;
     }
-    console.log('CREATED:', ret.etcdir, etcdExec);
+    console.log('CREATED:', ret.etcdir, etcdExec, process.env['HOME']);
     ret.etcd = cp.spawn(etcdExec, ['--data-dir', ret.etcdir]);
     ret.etcd.on('error', (err) => {
       console.error('can\'t spawn etcd');
