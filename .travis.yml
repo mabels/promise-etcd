@@ -12,7 +12,6 @@ before_install:
   - git clone https://github.com/coreos/etcd.git $HOME/etcd
   - (cd $HOME/etcd && git checkout -b v3.1.9 v3.1.9)
   - (export GOPATH=$HOME/.go ; mkdir -p $GOPATH ; cd $HOME/etcd && sh ./build)
-  - cd $HOME/etcd && ls -lart
 
 install:
     - nvm install 6
