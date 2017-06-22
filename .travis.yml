@@ -6,11 +6,11 @@ dist: trusty
 
 before_install:
   - mkdir $HOME/etcd
-  - gimme 1.7.5    
+  - gimme 1.8.3
   - ls ~/.gimme/envs
-  - source ~/.gimme/envs/go1.7.5.env
+  - source ~/.gimme/envs/go1.8.3.env
   - git clone https://github.com/coreos/etcd.git $HOME/etcd
-  - (cd $HOME/etcd && git checkout -b v3.0.15 v3.0.15) 
+  - (cd $HOME/etcd && git checkout -b v3.1.9 v3.1.9)
   - (export GOPATH=$HOME/.go ; mkdir -p $GOPATH ; cd $HOME/etcd && go get ; go build)
 
 install:
