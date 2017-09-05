@@ -4,7 +4,6 @@ import * as Uuid from 'node-uuid';
 import * as os from 'os';
 import * as path from 'path';
 
-
 export class WaitMaster {
   public etc: etcd.Etcd;
   public reqStop: boolean = false;
@@ -46,7 +45,8 @@ export class WaitMaster {
   }
 
   constructor(key: string, etc: etcd.Etcd,
-    ttl: number = 30000, saveTtl: number = 1000, startCb: () => void, stopCb: () => void) {
+    ttl = 30000, saveTtl = 1000,
+    startCb: () => void, stopCb: () => void) {
     this.etc = etc;
     this.key = key;
     this.ttl = ttl;

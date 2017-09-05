@@ -4,9 +4,12 @@
     "module": "commonjs",
     "outDir": "dist",
     "noImplicitAny": true,
-    "pretty": true
+    "pretty": true,
+    "sourceMap": true,
+    "declaration": true
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ]
 }

@@ -1,29 +1,29 @@
 import { assert } from 'chai';
 import * as Uuid from 'node-uuid';
-import * as etcd from '../src/index';
+import * as etcd from '../lib/index';
 
 function param(arr: string[], uuid: string): string[] {
   return arr.concat(['--etcd-cluster-id', uuid, '--etcd-url', 'http://localhost:2379']);
 }
 
 function masterCount(wms: etcd.WaitMaster[]): number {
-    let masterCount = 0;
+    let mc = 0;
     for (let i = 0; i < wms.length; ++i) {
       if (wms[i].master) {
-        ++masterCount;
+        ++mc;
       }
     }
-    return masterCount;
+    return mc;
 }
 
 function stopCount(wms: etcd.WaitMaster[]): number {
-    let stopCount = 0;
+    let sc = 0;
     for (let i = 0; i < wms.length; ++i) {
       if (wms[i].stopped) {
-        ++stopCount;
+        ++sc;
       }
     }
-    return stopCount;
+    return sc;
 }
 
 function slaves(wms: etcd.WaitMaster[]): etcd.WaitMaster[] {

@@ -1,7 +1,6 @@
 
 import * as rq from 'request-promise';
 import * as rqErr from 'request-promise/errors';
-import * as stream from 'stream';
 
 export class LeaderInfo {
   public leader: string;
@@ -51,6 +50,7 @@ export class EtcValueNode {
   public value: string;
   public dir: boolean = false;
   public nodes: EtcValueNode[] = null;
+
   public static fromJson(js: any, val: EtcValueNode = null): EtcValueNode {
     if (!val) {
       val = new EtcValueNode();
@@ -92,7 +92,7 @@ export class EtcError {
 export class EtcValue<T> {
   public err?: EtcResponse = null;
   public value?: T = null;
- 
+
   public static error<T>(res: any): EtcValue<T> {
     let ej = new EtcValue<T>();
     ej.err = res;
@@ -203,9 +203,9 @@ export class SelfState {
 
 export class Config {
   public urls: string[] = [];
-  public reqTimeout: number = 500; // msec
-  public retries: number = 3;
-  public waitTime: number = 250; // ms
+  public reqTimeout = 500; // msec
+  public retries = 3;
+  public waitTime = 250; // ms
   public clusterId: string = null;
   public appId: string = null;
   public static start(argv: string[], app: string = null): Config {
@@ -444,8 +444,9 @@ export class Etcd {
   public async mkdir(key: string): Promise<EtcResponse> {
     return this.keyAction('PUT', key, this.bodyParams({ dir: true }));
   }
-  public async rmdir(key: string): Promise<EtcResponse> {
-    return this.keyAction('DELETE', `${key}${this.urlParams({ dir: true }, '?')}`);
+  public async rmdir(key: string, params: any = {}): Promise<EtcResponse> {
+    return this.keyAction('DELETE',
+        `${key}${this.urlParams(Object.assign({ dir: true }, params), '?')}`);
   }
 
   public async delete(key: string): Promise<EtcResponse> {

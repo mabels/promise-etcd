@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import * as Uuid from 'node-uuid';
-import * as etcd from '../src/index';
+import * as etcd from '../lib/index';
 
 function param(arr: string[], uuid: string): string[] {
   return arr.concat(['--etcd-cluster-id', uuid, '--etcd-url', 'http://localhost:2379']);
@@ -191,6 +191,24 @@ describe('etcd', function() {
 
     ret = await etc.rmdir('meno');
     assert.equal(ret.isOk(), true);
+  });
+
+  it('rmdir', async () => {
+    let uuid = Uuid.v4().toString();
+    let wc = etcd.Config.start(['--etcd-cluster-id', uuid]);
+    let etc = etcd.Etcd.create(wc);
+    await etc.mkdir('meno');
+    await etc.mkdir('meno/geheim');
+    await etc.mkdir('meno/geheim/ganz');
+    let ret = await etc.rmdir('meno', { recursive: true });
+    assert.equal(ret.isOk(), true);
+    await etc.mkdir('meno');
+    let lst = await etc.list('meno');
+    assert.equal(lst.isErr(), false);
+    assert.equal(lst.value.length, 0);
+    ret = await etc.rmdir('meno', { recursive: true });
+    assert.equal(ret.isOk(), true);
+
   });
 
   it('get/setRaw', async () => {

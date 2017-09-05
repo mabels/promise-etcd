@@ -38,4 +38,3 @@ class EtcdDaemon {
 
 let etcdDaemon = EtcdDaemon.start();
 process.on('exit', etcdDaemon.kill.bind(etcdDaemon));
-
