@@ -2,9 +2,11 @@ import { assert } from 'chai';
 import * as Uuid from 'node-uuid';
 import * as etcd from '../lib/index';
 
+/*
 function param(arr: string[], uuid: string): string[] {
   return arr.concat(['--etcd-cluster-id', uuid, '--etcd-url', 'http://localhost:2379']);
 }
+*/
 
 function masterCount(wms: etcd.WaitMaster[]): number {
     let mc = 0;
@@ -33,11 +35,12 @@ function slaves(wms: etcd.WaitMaster[]): etcd.WaitMaster[] {
 function master(wms: etcd.WaitMaster[]): etcd.WaitMaster {
   return wms.find((wm) => wm.master);
 }
+
 function mastersSum(masters: number[]): number {
   return masters.reduce((a, b) => a + b, 0);
 }
 
-describe('wait-master', function() {
+describe('wait-master', function(): void {
   this.timeout(10000);
   it('elect-master', async () => {
     // this.timeout(10000)
@@ -49,11 +52,11 @@ describe('wait-master', function() {
     let totalWaiters = 10;
     for (let i = 0; i < totalWaiters; ++i) {
       masters[i] = 0;
-      let wm = await etcd.WaitMaster.create(uuid, etc, 100, 100,
+      let wmc = await etcd.WaitMaster.create(uuid, etc, 100, 100,
         ((id): () => void => { return () => { ++masters[id]; }; })(i),
         ((id): () => void => { return () => { --masters[id]; }; })(i),
       );
-      waitMasters.push(wm);
+      waitMasters.push(wmc);
     }
     await new Promise((res, rej) => { setTimeout(res, 400); });
     assert.equal(mastersSum(masters), 1, 'master count 1 A');

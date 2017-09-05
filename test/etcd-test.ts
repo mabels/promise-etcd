@@ -2,11 +2,13 @@ import { assert } from 'chai';
 import * as Uuid from 'node-uuid';
 import * as etcd from '../lib/index';
 
+/*
 function param(arr: string[], uuid: string): string[] {
   return arr.concat(['--etcd-cluster-id', uuid, '--etcd-url', 'http://localhost:2379']);
 }
+*/
 
-describe('etcd', function() {
+describe('etcd', function(): void {
   this.timeout(2000);
   before(async () => {
     let wc = etcd.Config.start([
@@ -20,10 +22,11 @@ describe('etcd', function() {
   });
   it('AsyncPromise Blocking', async () => {
     let value = 1;
-    let test = new Promise(async (r, j) => {
-      await new Promise((rr, jj) => { setTimeout(rr, 10) });
+    let out = new Promise(async (r, j) => {
+      await new Promise((rr, jj) => { setTimeout(rr, 10); });
       ++value;
     });
+    out = null; // WTF Lint
     assert.equal(value, 1);
     await new Promise((rr, jj) => { setTimeout(rr, 15); });
     assert.equal(value, 2);

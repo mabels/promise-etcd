@@ -1,6 +1,6 @@
 {
   "name": "promise-etcd",
-  "version": "1.0.7-1",
+  "version": "1.0.7-2",
   "description": "promise based etcd api includes master election for workers",
   "main": "./dist/lib/index.js",
   "types": "./dist/lib/index.d.ts",
@@ -8,6 +8,7 @@
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
     "build": "tsc",
+    "lint": "tslint --project tsconfig.json",
     "pretest": "npm run build",
     "test": "mocha --require ./dist/test/etcd_daemon.js dist/test/*-test.js",
     "prepublish": "not-in-install && npm run build || echo 'In install cycle, skipping prepublish'"
@@ -26,11 +27,8 @@
     "@types/mocha": ">=2.2.33",
     "chai": ">=3.5.0",
     "cz-conventional-changelog": ">=1.1.6",
-    "globby": ">=5.0.0",
     "mocha": ">=3.2.0",
     "rimraf": ">=2.5.2",
-    "shelljs": ">=0.7.6",
-    "source-map-support": ">=0.4.11",
     "tslint": ">=3.11.0",
     "typescript": ">=2.1.1"
   },

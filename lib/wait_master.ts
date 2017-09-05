@@ -140,7 +140,7 @@ export class WaitMaster {
         if (waitIndex) {
           params['waitIndex'] = waitIndex;
         }
-        let master = this.master;
+        // let master = this.master;
         // master && console.log('wait...', this.me, this.aliveQueue)
         this.currentWait = this.etc.getRaw(this.key, params, { timeout: 3600000 });
         let ret = await this.currentWait;

@@ -203,9 +203,9 @@ export class SelfState {
 
 export class Config {
   public urls: string[] = [];
-  public reqTimeout = 500; // msec
-  public retries = 3;
-  public waitTime = 250; // ms
+  public reqTimeout: number = 500; // msec
+  public retries: number = 3;
+  public waitTime: number = 250; // ms
   public clusterId: string = null;
   public appId: string = null;
   public static start(argv: string[], app: string = null): Config {
