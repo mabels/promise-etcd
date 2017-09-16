@@ -22,13 +22,13 @@ export class WaitMaster {
   public currentWait: Promise<any> = null;
 
   public static async create(key: string, etc: etcd.Etcd, ttl: number, saveTtl: number,
-    start: () => void, stop: () => void = null): Promise<any> {
+    start: () => void = null, stop: () => void = null): Promise<any> {
     let ret = new WaitMaster(key, etc, ttl, saveTtl, start, stop);
     try {
       await etc.mkdir(key);
     } catch (err) {
       if (err.statusCode != 403) {
-        console.log(err); // Error:  105: Key already exists (/menox)
+        etc.cfg.log.error(err); // Error:  105: Key already exists (/menox)
         return Promise.reject(`can not create directory:${key}`);
       }
     }
@@ -51,8 +51,8 @@ export class WaitMaster {
     this.key = key;
     this.ttl = ttl;
     this.saveTtl = saveTtl;
-    this.startCb = startCb;
-    this.stopCb = stopCb;
+    this.startCb = startCb || ((): void => { /**/ });
+    this.stopCb = stopCb || ((): void => { /**/ });
   }
 
   private async renewTimeout(): Promise<string> {
@@ -61,7 +61,7 @@ export class WaitMaster {
       // console.log(this.aliveQueue)
       await this.etc.update(this.aliveQueue, this.ttl + this.saveTtl);
     } catch (e) {
-      console.error('update alive failed');
+      this.etc.cfg.log.error('update alive failed');
       return this.stop();
     }
     this.startAliveQueue();
@@ -127,7 +127,7 @@ export class WaitMaster {
       }
       return Promise.resolve('im a slave');
     } catch (e) {
-      console.error(e);
+      this.etc.cfg.log.error(e);
       return Promise.reject(e);
     }
   }
@@ -149,7 +149,7 @@ export class WaitMaster {
         ret = await this.checkAmIMaster();
         // master && console.log('postMaster:', ret, this.aliveQueue)
       } catch (e) {
-        console.error(e);
+        this.etc.cfg.log.error(e);
       }
     }
   }

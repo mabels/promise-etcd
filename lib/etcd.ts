@@ -1,6 +1,26 @@
+import * as request from 'request';
+// import * as rq from 'request-promise';
+// import * as rqErr from 'request-promise/errors';
+import Config from './config';
+import ChangeWaiter from './change-waiter';
 
-import * as rq from 'request-promise';
-import * as rqErr from 'request-promise/errors';
+// export class EtcdPromise<T> implements Promise<T> {
+//   public readonly [Symbol.toStringTag]: 'Promise'; // funky stuff?
+
+//   public then<TResult1 = T, TResult2 = never>(
+//     onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
+//     onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>)
+//     : Promise<TResult1 | TResult2> {
+//       return null;
+//   }
+
+//   public catch<TResult = never>(
+//       onrejected?: (reason: any) => TResult | PromiseLike<TResult>)
+//       : Promise<T | TResult> {
+//       return null;
+//   }
+
+// }
 
 export class LeaderInfo {
   public leader: string;
@@ -68,9 +88,10 @@ export class EtcValueNode {
 }
 
 export class EtcError {
-  public reqErr?: rqErr.RequestError;
-  public statusErr?: rqErr.StatusCodeError;
-  public transErr?: rqErr.TransformError;
+  // public reqErr?: rqErr.RequestError;
+  // public statusErr?: rqErr.StatusCodeError;
+  public statusErr?: number;
+  // public transErr?: rqErr.TransformError;
   public unknown?: any;
   public static fromJson(err: any): EtcError {
     let ee = new EtcError();
@@ -123,7 +144,7 @@ export class EtcResponse {
   public node?: EtcValueNode;
   public err?: EtcError;
 
- public static error(err: any): EtcResponse {
+  public static error(err: any): EtcResponse {
     let res = new EtcResponse();
     res.action = 'error';
     res.err = EtcError.fromJson(err);
@@ -201,54 +222,8 @@ export class SelfState {
 
 }
 
-export class Config {
-  public urls: string[] = [];
-  public reqTimeout: number = 500; // msec
-  public retries: number = 3;
-  public waitTime: number = 250; // ms
-  public clusterId: string = null;
-  public appId: string = null;
-  public static start(argv: string[], app: string = null): Config {
-    let ret = new Config();
-    let ofs = argv.indexOf('--etcd-cluster-id');
-    if (ofs >= 0) {
-      ret.clusterId = argv[ofs + 1];
-    }
-
-    ofs = argv.indexOf('--etcd-app-id');
-    if (ofs >= 0) {
-      ret.appId = argv[ofs + 1];
-    } else {
-      ret.appId = app;
-    }
-
-    for (ofs = argv.indexOf('--etcd-url'); ofs >= 0; ofs = argv.indexOf('--etcd-url', ofs + 1)) {
-      ret.urls.push(argv[ofs + 1]);
-    }
-    if (ret.urls.length == 0) {
-      ret.urls.push('http://localhost:2379');
-    }
-
-    ofs = argv.indexOf('--etcd-retries');
-    if (ofs >= 0) {
-      ret.retries = parseInt(argv[ofs + 1], 10);
-    }
-
-    ofs = argv.indexOf('--etcd-wait-time');
-    if (ofs >= 0) {
-      ret.waitTime = parseInt(argv[ofs + 1], 10);
-    }
-
-    ofs = argv.indexOf('--etcd-req-timeout');
-    if (ofs >= 0) {
-      ret.reqTimeout = parseInt(argv[ofs + 1], 10);
-    }
-    return ret;
-  }
-}
-
 export class Etcd {
-  private cfg: Config;
+  public cfg: Config;
   private connected?: SelfState = null;
 
   private selfStateInActions: { [id: string]: Dispatcher<SelfState>[] } = {};
@@ -264,30 +239,51 @@ export class Etcd {
   private async request(method: string, url: string, options: any = {}): Promise<any> {
     let c = await this.connect();
     if (!c.isOk()) {
-      console.error('Request-REJECT no valid connection');
+      this.cfg.log.error('Request-REJECT no valid connection');
       return Promise.reject(c);
     }
     try {
-      return await this.rawRequest(method, `${c.url}${url}`, options);
+      return new Promise<any>((resolve, reject) => {
+        const mkUrl = `${c.url}${url}`;
+        const req = this.rawRequest(method, mkUrl, options);
+        const bodies: string[] = [];
+        req.on('data', (data: string | Buffer) => {
+          bodies.push(data.toString());
+        });
+        req.on('complete', (resp) => {
+          const body = bodies.join('');
+          this.cfg.log.debug('request:', method, mkUrl, options, body);
+          resolve(body);
+        });
+        req.on('error', (e: Error) => {
+          reject(e);
+        });
+        // on(event: 'request', listener: (req: http.ClientRequest) => void): this;
+        // on(event: 'response', listener: (resp: http.IncomingMessage) => void): this;
+        // on(event: 'data', listener: (data: Buffer | string) => void): this;
+        // on(event: 'complete', listener: (resp: http.IncomingMessage, body?: string | Buffer) => void): this;
+
+      });
     } catch (e) {
       if (e.name == 'StatusCodeError') {
         return Promise.reject(e);
       }
-      console.error('Reconnected:', typeof e, e.name, e);
+      this.cfg.log.error('Reconnected:', typeof e, e.name, e);
       this.connected = null; // reconnect etcd
       return this.request(method, url, options);
     }
   }
 
-  private rawRequest(method: string, url: string, options: any = {}): rq.RequestPromise {
+  private rawRequest(method: string, url: string, options: any = {}): request.Request {
     let my = {
       method: method,
       timeout: this.cfg.reqTimeout,
       uri: url
     };
     options = Object.assign(my, options);
+    return request(options);
     // console.log(options)
-    return rq(url, options);
+    // return rq(url, options);
   }
 
   private urlParams(params: any, sep = ''): string {
@@ -365,7 +361,7 @@ export class Etcd {
           this.connected = foundOk;
           return Promise.resolve(foundOk);
         }
-        console.log('Retry-Connect:', retry, this.cfg.waitTime);
+        this.cfg.log.info('Retry-Connect:', retry, this.cfg.waitTime);
         await new Promise((res, rej) => {
           setTimeout(res, this.cfg.waitTime);
         });
@@ -400,22 +396,28 @@ export class Etcd {
       // console.log('selfStat-Double:', url)
       return dispatcher.promise;
     }
-    return new Promise<SelfState>(async (res, rej) => {
+    return new Promise<SelfState>((res, rej) => {
       //  console.log('P-Enter')
-      try {
-        let ret = await this.rawRequest('GET', `${url}/v2/stats/self`);
-        //  console.log('selfstate: get ok:', url, ret)
-        res(this.resolvSelfStateInActions(url, SelfState.ok(url, ret)));
-      } catch (err) {
-        //  console.log('selfstate: get false:', url, err)
-        res(this.resolvSelfStateInActions(url, SelfState.error(url, err)));
-      }
+        const ret = this.rawRequest('GET', `${url}/v2/stats/self`);
+        ret.on('error', (err: Error) => {
+          res(this.resolvSelfStateInActions(url, SelfState.error(url, err)));
+        });
+        const bodies: string[] = [];
+        ret.on('data', (data: string | Buffer) => {
+          bodies.push(data.toString());
+        });
+        ret.on('complete', (resp) => {
+          const body = bodies.join('');
+          // this.cfg.log.info('complete', body);
+          res(this.resolvSelfStateInActions(url, SelfState.ok(url, body)));
+        });
     });
   }
 
   private async keyAction(method: string, key: string, options: any = {}): Promise<EtcResponse> {
     let uri = this.buildKeyUri('/v2/keys', key);
     try {
+      this.cfg.log.debug('keyAction', method, uri, options);
       let ret = await this.request(method, uri, options);
       // if (method == 'PUT') {
       //   console.log('OK-PUT:', uri, ret)
@@ -446,7 +448,7 @@ export class Etcd {
   }
   public async rmdir(key: string, params: any = {}): Promise<EtcResponse> {
     return this.keyAction('DELETE',
-        `${key}${this.urlParams(Object.assign({ dir: true }, params), '?')}`);
+      `${key}${this.urlParams(Object.assign({ dir: true }, params), '?')}`);
   }
 
   public async delete(key: string): Promise<EtcResponse> {
@@ -505,6 +507,10 @@ export class Etcd {
 
   public async setJson(key: string, val: any): Promise<EtcResponse> {
     return this.setRaw(key, JSON.stringify(val));
+  }
+
+  public createChangeWaiter(path: string, params: any = {}, options: any = {}): ChangeWaiter {
+    return new ChangeWaiter(this, path, params, options);
   }
 
 }

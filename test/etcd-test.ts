@@ -8,7 +8,7 @@ function param(arr: string[], uuid: string): string[] {
 }
 */
 
-describe('etcd', function(): void {
+describe('etcd', function (): void {
   this.timeout(2000);
   before(async () => {
     let wc = etcd.Config.start([
@@ -79,7 +79,7 @@ describe('etcd', function(): void {
     return Promise.resolve('done');
   });
 
- it('selfStat connect', async () => {
+  it('selfStat connect', async () => {
     let wc = etcd.Config.start([
       '--etcd-req-timeout', '50',
       '--etcd-url', 'http://localhost:2379'
@@ -227,6 +227,50 @@ describe('etcd', function(): void {
     assert.equal(ret.isOk(), true);
     // console.log(ret.node)
     assert.equal(ret.node.value, 'Hello World');
+  });
+
+  function updateData(source: etcd.Etcd, ccw: etcd.ChangeWaiter, cnt: any, done: any): void {
+    source.setRaw(`wait-for-change/hallo-${cnt.cnt}`, `vallo-${cnt.cnt}`).then(() => {
+      if (cnt.cnt == 0) {
+        ccw.then((er) => {
+          let node = er.node;
+          if (er.node.dir) {
+            node = er.node.nodes[cnt.cnt];
+          }
+          // console.log(cnt, er.node, node);
+          assert.isTrue(node.key.endsWith(`wait-for-change/hallo-${cnt.cnt}`));
+          assert.equal(`vallo-${cnt.cnt}`, node.value);
+          cnt.cnt++;
+          if (cnt.cnt > 4) {
+            done();
+          }
+          updateData(source, ccw, cnt, done);
+        }).catch(() => {
+          assert.fail('should never called');
+        });
+      }
+    }).catch(() => {
+      assert.fail('should never called');
+    });
+  }
+
+  it('wait-for-change', (done) => {
+    const uuid = Uuid.v4().toString();
+    const wc = etcd.Config.start(['--etcd-cluster-id', uuid]);
+    const source = etcd.Etcd.create(wc);
+    source.mkdir('wait-for-change').then(() => {
+      const ccw = source.createChangeWaiter('wait-for-change', { recursive: true });
+      const cnt = { cnt: 0 };
+      updateData(source, ccw, cnt, () => {
+        done();
+        // ccw.cancel();
+        // source.setRaw(`wait-for-change/cancelled`, `stopped`).then(() => {
+        //   done();
+        // }).catch(() => {
+        //   assert.fail('never called');
+        // });
+      });
+    });
   });
 
 });
