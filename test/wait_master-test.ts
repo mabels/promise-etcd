@@ -88,7 +88,7 @@ describe('wait-master', function(): void {
       ++cnt;
       // console.log('>>>>stop current master', cnt)
       await master(waitMasters).stop();
-      await new Promise((res, rej) => { setTimeout(res, 250); });
+      await new Promise((res, rej) => { setTimeout(res, 300); });
       // console.log('>>>>waited current master', master(waitMasters))
       if (master(waitMasters)) {
         assert.equal(mastersSum(masters), 1, 'master count 1 M');
