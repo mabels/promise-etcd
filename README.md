@@ -6,9 +6,10 @@
 ## PromiseEtcd
 
 This is a simple etcd abstraction with a Promise based api. It written in typescript.
-And uses promise-request from
+And uses rxjs and request from
 
- https://www.npmjs.com/package/request-promise
+ https://www.npmjs.com/package/rxjs
+ https://www.npmjs.com/package/request
 
 It provides a simple and purely implemented api to:
 
