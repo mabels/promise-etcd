@@ -21,8 +21,9 @@ export class Dispatcher<T>  {
   constructor() {
     // console.log('Dispatcher:constructor')
     this.subject = rx.Observable.create((obs: rx.Observer<T>) => {
-      this.fnResolv = (t: T) => obs.next(t);
-      this.fnReject = (t: T) => obs.error(t);
+      // console.log('dispatcher:create:');
+      this.fnResolv = (t: T) => { /* console.log('resolv:', t); */ obs.next(t); obs.complete(); };
+      this.fnReject = (t: T) => { /* console.log('reject:', t); */ obs.error(t); };
     });
   }
 

@@ -52,10 +52,11 @@ describe('wait-master', function(): void {
     let totalWaiters = 10;
     for (let i = 0; i < totalWaiters; ++i) {
       masters[i] = 0;
-      etcd.WaitMaster.create(uuid, etc, 100, 100,
+      const wmc = await etcd.WaitMaster.create(uuid, etc, 100, 100,
         ((id): () => void => { return () => { ++masters[id]; }; })(i),
         ((id): () => void => { return () => { --masters[id]; }; })(i),
-      ).subscribe(wmc => waitMasters.push(wmc));
+      ).toPromise();
+      waitMasters.push(wmc);
     }
     await new Promise((res, rej) => { setTimeout(res, 400); });
     assert.equal(mastersSum(masters), 1, 'master count 1 A');
@@ -73,7 +74,8 @@ describe('wait-master', function(): void {
     assert.equal(stopCount(waitMasters), 2, 'stop count 1 I');
 
     let wm = await etcd.WaitMaster.create(uuid, etc, 100, 100,
-      () => assert('will not get the master'), () => assert('do not stop')).toPromise();
+      () => assert('will not get the master'),
+      () => assert('do not stop')).toPromise();
     await new Promise((res, rej) => { setTimeout(res, 150); });
     await wm.stop();
     assert.equal(mastersSum(masters), 1, 'master count 1 J');

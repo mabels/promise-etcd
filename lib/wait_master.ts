@@ -1,4 +1,3 @@
-
 import Etcd from './etcd-observable';
 import * as Uuid from 'node-uuid';
 import * as os from 'os';
@@ -33,6 +32,7 @@ export class WaitMaster {
           ret.aliveQueue = `${key}/${path.basename(aq['node']['key'])}`;
           ret.startAliveQueue();
           obs.next(ret);
+          obs.complete();
         }, err => {
           obs.error(err);
         });
@@ -160,6 +160,7 @@ export class WaitMaster {
         // master && console.log('await', this.me, this.aliveQueue)
         waitIndex = ret['node']['modifiedIndex'] + 1;
         this.checkAmIMaster().subscribe((_) => {
+          // console.log('startWaitChange:', _);
           this.startWaitChange();
         }, (e) => {
           this.etc.cfg.log.error(e);
