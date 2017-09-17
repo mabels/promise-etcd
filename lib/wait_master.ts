@@ -1,5 +1,5 @@
 import Etcd from './etcd-observable';
-import * as Uuid from 'node-uuid';
+import * as Uuid from 'uuid';
 import * as os from 'os';
 import * as path from 'path';
 import * as rx from 'rxjs';

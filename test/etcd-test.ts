@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import * as Uuid from 'node-uuid';
+import * as Uuid from 'uuid';
 import * as etcd from '../lib/index';
 
 /*
