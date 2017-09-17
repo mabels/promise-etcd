@@ -1,11 +1,9 @@
-import * as request from 'request';
 import Config from './config';
 import ChangeWaiter from './change-waiter';
 import SelfState from './self-state';
 import EtcResponse from './etc-response';
 import EtcValue from './etc-value';
 import EtcValueNode from './etc-value-node';
-import Dispatcher from './dispatcher';
 import EtcdObservable from './etcd-observable';
 
 export class EtcdPromise {
