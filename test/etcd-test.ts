@@ -15,7 +15,7 @@ describe('etcd', function (): void {
       '--etcd-req-timeout', '50',
       '--etcd-url', 'http://localhost:2379'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     await etc.connect();
     console.log('etcd Cluster Booted');
     return Promise.resolve('done');
@@ -38,7 +38,7 @@ describe('etcd', function (): void {
       '--etcd-req-timeout', '50',
       '--etcd-url', 'http://localhost:2379'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.clusterState();
     assert.equal(1, ret.length);
     // console.log(ret[0])
@@ -53,7 +53,7 @@ describe('etcd', function (): void {
       '--etcd-url', 'http://localhost:2379',
       '--etcd-url', 'http://localhost:2379'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.clusterState();
     assert.equal(2, ret.length);
     assert.equal(ret[0].isOk(), true);
@@ -71,7 +71,7 @@ describe('etcd', function (): void {
       '--etcd-url', 'http://localhost:2379',
       '--etcd-url', 'http://localhost:2379'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.clusterState();
     assert.equal(4, ret.length);
     assert.equal(ret[0].isOk(), true);
@@ -84,7 +84,7 @@ describe('etcd', function (): void {
       '--etcd-req-timeout', '50',
       '--etcd-url', 'http://localhost:2379'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.connect();
     assert.equal(ret.isOk(), true, 'isok');
     assert.equal(ret.url, 'http://localhost:2379', 'url');
@@ -96,7 +96,7 @@ describe('etcd', function (): void {
       '--etcd-req-timeout', '50',
       '--etcd-url', 'http://169.254.99.94'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.clusterState();
     assert.equal(1, ret.length);
     assert.equal(ret[0].isOk(), false);
@@ -108,7 +108,7 @@ describe('etcd', function (): void {
       '--etcd-url', 'http://169.254.99.94',
       '--etcd-url', 'http://169.254.99.95'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.connect();
     assert.equal(ret.isOk(), false);
     return Promise.resolve('done');
@@ -118,7 +118,7 @@ describe('etcd', function (): void {
       '--etcd-req-timeout', '50',
       '--etcd-url', 'http://localhost:2379'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.connect();
     assert.equal(ret.isOk(), true);
     return Promise.resolve('done');
@@ -130,7 +130,7 @@ describe('etcd', function (): void {
       '--etcd-url', 'http://localhost:2379',
       '--etcd-url', 'http://127.0.0.1:2379'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.connect();
     assert.equal(ret.isOk(), true);
     return Promise.resolve('done');
@@ -143,7 +143,7 @@ describe('etcd', function (): void {
       '--etcd-url', 'http://169.254.55.99',
       '--etcd-url', 'http://127.0.0.1:2379'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.connect();
     assert.equal(ret.isOk(), true);
     return Promise.resolve('done');
@@ -155,7 +155,7 @@ describe('etcd', function (): void {
       '--etcd-url', 'http://localhost:2379',
       '--etcd-url', 'http://169.254.99.94'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.clusterState();
     assert.equal(2, ret.length);
     assert.equal(ret[0].isOk(), true);
@@ -170,7 +170,7 @@ describe('etcd', function (): void {
       '--etcd-url', 'http://169.254.99.94',
       '--etcd-url', 'http://127.0.0.1:2379'
     ]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.clusterState();
     assert.equal(3, ret.length);
     assert.equal(ret[0].isOk(), true);
@@ -182,7 +182,7 @@ describe('etcd', function (): void {
   it('mkdir', async () => {
     let uuid = Uuid.v4().toString();
     let wc = etcd.Config.start(['--etcd-cluster-id', uuid]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     let ret = await etc.mkdir('meno');
     assert.equal(ret.isErr(), false);
     ret = await etc.mkdir('meno');
@@ -199,7 +199,7 @@ describe('etcd', function (): void {
   it('rmdir', async () => {
     let uuid = Uuid.v4().toString();
     let wc = etcd.Config.start(['--etcd-cluster-id', uuid]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
     await etc.mkdir('meno');
     await etc.mkdir('meno/geheim');
     await etc.mkdir('meno/geheim/ganz');
@@ -217,7 +217,7 @@ describe('etcd', function (): void {
   it('get/setRaw', async () => {
     let uuid = Uuid.v4().toString();
     let wc = etcd.Config.start(['--etcd-cluster-id', uuid]);
-    let etc = etcd.Etcd.create(wc);
+    let etc = etcd.EtcdPromise.create(wc);
 
     let ret = await etc.getRaw('hammer/murk');
     assert.equal(ret.isErr(), true);
@@ -233,7 +233,7 @@ describe('etcd', function (): void {
     return ('' + (Math.pow(10, pad) + n)).substr(1);
   }
 
-  function changeWriterThen(source: etcd.Etcd, ccw: etcd.ChangeWaiter, cnt: any, done: any): void {
+  function changeWriterThen(source: etcd.EtcdPromise, ccw: etcd.ChangeWaiter, cnt: any, done: any): void {
     let nested = 0;
     ccw.then((er) => {
       nested++;
@@ -260,7 +260,7 @@ describe('etcd', function (): void {
     });
   }
 
-  function updateData(source: etcd.Etcd, ccw: etcd.ChangeWaiter, cnt: any, done: any, install: boolean): void {
+  function updateData(source: etcd.EtcdPromise, ccw: etcd.ChangeWaiter, cnt: any, done: any, install: boolean): void {
     setTimeout(() => {
       source.setRaw(`wait-for-change/hallo-${leftPad(cnt.cnt, 5)}`, `vallo-${leftPad(cnt.cnt, 5)}`).then(() => {
         if (install) {
@@ -277,7 +277,7 @@ describe('etcd', function (): void {
     const wc = etcd.Config.start([
       '--etcd-cluster-id', uuid,
       '--etcd-req-timeout', '200']);
-    const source = etcd.Etcd.create(wc);
+    const source = etcd.EtcdPromise.create(wc);
     source.mkdir('wait-for-change').then(() => {
       const ccw = source.createChangeWaiter('wait-for-change', { recursive: true });
       const cnt = { cnt: 0 };

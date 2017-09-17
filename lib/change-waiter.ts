@@ -1,4 +1,6 @@
-import { Etcd, EtcResponse, EtcValueNode } from './etcd';
+import EtcResponse from './etc-response';
+import EtcValueNode from './etc-value-node';
+import Etcd from './etcd-promise';
 
 class CancelableRequest {
   private readonly cw: ChangeWaiter;

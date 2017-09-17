@@ -1,39 +1,10 @@
 import * as request from 'request';
-// import * as rq from 'request-promise';
-// import * as rqErr from 'request-promise/errors';
 import Config from './config';
 import ChangeWaiter from './change-waiter';
-
-// export class EtcdPromise<T> implements Promise<T> {
-//   public readonly [Symbol.toStringTag]: 'Promise'; // funky stuff?
-
-//   public then<TResult1 = T, TResult2 = never>(
-//     onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
-//     onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>)
-//     : Promise<TResult1 | TResult2> {
-//       return null;
-//   }
-
-//   public catch<TResult = never>(
-//       onrejected?: (reason: any) => TResult | PromiseLike<TResult>)
-//       : Promise<T | TResult> {
-//       return null;
-//   }
-
-// }
-
-export class LeaderInfo {
-  public leader: string;
-  public uptime: string;
-  public startTime: Date;
-  public static fill(js: any): LeaderInfo {
-    let ret = new LeaderInfo();
-    ret.leader = js['leader'];
-    ret.uptime = js['uptime'];
-    ret.startTime = new Date(js['startTime']);
-    return ret;
-  }
-}
+import SelfState from './self-state';
+import EtcResponse from './etc-response';
+import EtcValue from './etc-value';
+import EtcValueNode from './etc-value-node';
 
 class Dispatcher<T>  {
   private fnResolv: (x: any) => void;
@@ -63,173 +34,14 @@ class Dispatcher<T>  {
 
 }
 
-export class EtcValueNode {
-  public createIndex: number;
-  public key: string;
-  public modifiedIndex: number;
-  public value: string;
-  public dir: boolean = false;
-  public nodes: EtcValueNode[] = null;
-
-  public static fromJson(js: any, val: EtcValueNode = null): EtcValueNode {
-    if (!val) {
-      val = new EtcValueNode();
-    }
-    val.createIndex = js['createIndex'];
-    val.key = js['key'];
-    val.modifiedIndex = js['modifiedIndex'];
-    val.value = js['value'];
-    val.dir = js['dir'] || false;
-    if (val.dir) {
-      val.nodes = (js['nodes'] || []).map((n: any) => EtcValueNode.fromJson(n));
-    }
-    return val;
-  }
-}
-
-export class EtcError {
-  // public reqErr?: rqErr.RequestError;
-  // public statusErr?: rqErr.StatusCodeError;
-  public statusErr?: number;
-  // public transErr?: rqErr.TransformError;
-  public unknown?: any;
-  public static fromJson(err: any): EtcError {
-    let ee = new EtcError();
-    // if (typeof (err) == 'RequestError') {
-    //   return ee;
-    // }
-    if (typeof (err.statusCode) == 'number' && err.statusCode != 200) {
-      ee.statusErr = err;
-      return ee;
-    }
-    // if (typeof (err) == 'TransformError') {
-    //   return ee;
-    // }
-    ee.unknown = err;
-    return ee;
-  }
-}
-
-export class EtcValue<T> {
-  public err?: EtcResponse = null;
-  public value?: T = null;
-
-  public static error<T>(res: any): EtcValue<T> {
-    let ej = new EtcValue<T>();
-    ej.err = res;
-    // console.log('ERROR', res)
-    // ej.err = EtcErrorFactory(res)
-    return ej;
-  }
-  public static value<T>(value: T): EtcValue<T> {
-    let ej = new EtcValue<T>();
-    ej.value = value;
-    return ej;
-  }
-  public isErr(): boolean {
-    return !!this.err;
-  }
-  public isOk(): boolean {
-    return !this.isErr();
-  }
-
-}
-
-// function EtcNodeFactory(js: any) : EtcValueNode {
-//   return EtcValueNode.fromJson(js)
-// }
-
-export class EtcResponse {
-  public action: string;
-  public node?: EtcValueNode;
-  public err?: EtcError;
-
-  public static error(err: any): EtcResponse {
-    let res = new EtcResponse();
-    res.action = 'error';
-    res.err = EtcError.fromJson(err);
-    return res;
-
-  }
-  public static fromJson(js: any): EtcResponse {
-    let res = new EtcResponse();
-    res.action = js['action'];
-    res.node = EtcValueNode.fromJson(js['node']);
-    return res;
-  }
-
-  public isErr(): boolean {
-    return this.action == 'error';
-  }
-  public isOk(): boolean {
-    return !this.isErr();
-  }
-}
-
-// function EtcResponseFactory(js: any) : EtcResponse {
-//   // if (js['errorCode']) {
-//   //   return EtcError.fromJson(js)
-//   // }
-//   if (js['action']) {
-//     return EtcResponse.fromJson(js)
-//   }
-//   return null
-// }
-
-// function EtcErrorFactory(js: any) : any {
-//   if (js['action']) {
-//     return EtcResponse.fromJson(js)
-//   }
-//   return null
-// }
-
-export class SelfState {
-  public url: string;
-  public err: any = null;
-
-  public name: string;
-  public id: string;
-  public state: string;
-
-  public startTime: Date;
-  public leaderInfo: LeaderInfo;
-
-  public recvAppendRequestCnt: number;
-  public sendAppendRequestCnt: number;
-
-  public static error(url: string, err: any): SelfState {
-    let ret = new SelfState();
-    ret.url = url;
-    ret.err = err;
-    return ret;
-  }
-  public static ok(url: string, val: string): SelfState {
-    let ret = new SelfState();
-    ret.url = url;
-    let json = JSON.parse(val);
-    ret.name = json['name'];
-    ret.id = json['id'];
-    ret.state = json['state'];
-    ret.startTime = new Date(json['startTime']);
-    ret.leaderInfo = LeaderInfo.fill(json['leaderInfo']);
-    ret.recvAppendRequestCnt = json['recvAppendRequestCnt'];
-    ret.sendAppendRequestCnt = json['sendAppendRequestCnt'];
-    return ret;
-  }
-  public isOk(): boolean {
-    return this.err == null && this.id.length != 0;
-  }
-
-}
-
-export class Etcd {
+export class EtcdPromise {
   public cfg: Config;
   private connected?: SelfState = null;
 
   private selfStateInActions: { [id: string]: Dispatcher<SelfState>[] } = {};
 
-  public static create(cfg: Config): Etcd {
-    return new Etcd(cfg);
+  public static create(cfg: Config): EtcdPromise {
+    return new EtcdPromise(cfg);
   }
 
   constructor(cfg: Config) {
@@ -515,4 +327,4 @@ export class Etcd {
 
 }
 
-export default Etcd;
+export default EtcdPromise;

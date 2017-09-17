@@ -1,11 +1,11 @@
 
-import * as etcd from './etcd';
+import Etcd from './etcd-promise';
 import * as Uuid from 'node-uuid';
 import * as os from 'os';
 import * as path from 'path';
 
 export class WaitMaster {
-  public etc: etcd.Etcd;
+  public etc: Etcd;
   public reqStop: boolean = false;
   public stopped: boolean = false;
   public stopAction: () => void = null;
@@ -21,7 +21,7 @@ export class WaitMaster {
   public currentAliveTimeOut: any = null;
   public currentWait: Promise<any> = null;
 
-  public static async create(key: string, etc: etcd.Etcd, ttl: number, saveTtl: number,
+  public static async create(key: string, etc: Etcd, ttl: number, saveTtl: number,
     start: () => void = null, stop: () => void = null): Promise<any> {
     let ret = new WaitMaster(key, etc, ttl, saveTtl, start, stop);
     try {
@@ -44,7 +44,7 @@ export class WaitMaster {
     return Promise.resolve(ret);
   }
 
-  constructor(key: string, etc: etcd.Etcd,
+  constructor(key: string, etc: Etcd,
     ttl = 30000, saveTtl = 1000,
     startCb: () => void, stopCb: () => void) {
     this.etc = etc;
