@@ -229,47 +229,72 @@ describe('etcd', function (): void {
     assert.equal(ret.node.value, 'Hello World');
   });
 
-  function updateData(source: etcd.Etcd, ccw: etcd.ChangeWaiter, cnt: any, done: any): void {
-    source.setRaw(`wait-for-change/hallo-${cnt.cnt}`, `vallo-${cnt.cnt}`).then(() => {
-      if (cnt.cnt == 0) {
-        ccw.then((er) => {
-          let node = er.node;
-          if (er.node.dir) {
-            node = er.node.nodes[cnt.cnt];
-          }
-          // console.log(cnt, er.node, node);
-          assert.isTrue(node.key.endsWith(`wait-for-change/hallo-${cnt.cnt}`));
-          assert.equal(`vallo-${cnt.cnt}`, node.value);
-          cnt.cnt++;
-          if (cnt.cnt > 4) {
-            done();
-          }
-          updateData(source, ccw, cnt, done);
-        }).catch(() => {
-          assert.fail('should never called');
-        });
+  function leftPad(n: number, pad: number): string {
+    return ('' + (Math.pow(10, pad) + n)).substr(1);
+  }
+
+  function changeWriterThen(source: etcd.Etcd, ccw: etcd.ChangeWaiter, cnt: any, done: any): void {
+    let nested = 0;
+    ccw.then((er) => {
+      nested++;
+      let node = er.node;
+      if (er.node.dir) {
+        node = er.node.nodes.sort((a, b) => {
+          if (a.key < b.key) { return -1; }
+          if (a.key > b.key) { return 1; }
+          return 0;
+        })[er.node.nodes.length - 1];
       }
+      // console.log(cnt.cnt, node.key, node.value, nested);
+      assert.isTrue(node.key.endsWith(`wait-for-change/hallo-${leftPad(cnt.cnt, 5)}`), 'not match');
+      assert.equal(`vallo-${leftPad(cnt.cnt, 5)}`, node.value, 'funny value');
+      cnt.cnt++;
+      if (cnt.cnt && (cnt.cnt % 4) == 0) {
+        done();
+      } else {
+        updateData(source, ccw, cnt, done, false);
+      }
+      --nested;
     }).catch(() => {
       assert.fail('should never called');
     });
   }
 
+  function updateData(source: etcd.Etcd, ccw: etcd.ChangeWaiter, cnt: any, done: any, install: boolean): void {
+    setTimeout(() => {
+      source.setRaw(`wait-for-change/hallo-${leftPad(cnt.cnt, 5)}`, `vallo-${leftPad(cnt.cnt, 5)}`).then(() => {
+        if (install) {
+          changeWriterThen(source, ccw, cnt, done);
+        }
+      }).catch(() => {
+        assert.fail('should never called');
+      });
+    }, (cnt.cnt % 1000) * 90);
+  }
+
   it('wait-for-change', (done) => {
     const uuid = Uuid.v4().toString();
-    const wc = etcd.Config.start(['--etcd-cluster-id', uuid]);
+    const wc = etcd.Config.start([
+      '--etcd-cluster-id', uuid,
+      '--etcd-req-timeout', '200']);
     const source = etcd.Etcd.create(wc);
     source.mkdir('wait-for-change').then(() => {
       const ccw = source.createChangeWaiter('wait-for-change', { recursive: true });
       const cnt = { cnt: 0 };
       updateData(source, ccw, cnt, () => {
-        done();
-        // ccw.cancel();
-        // source.setRaw(`wait-for-change/cancelled`, `stopped`).then(() => {
-        //   done();
-        // }).catch(() => {
-        //   assert.fail('never called');
-        // });
-      });
+        ccw.cancel();
+        cnt.cnt = 1000;
+        setTimeout(() => updateData(source, ccw, cnt, () => {
+          ccw.cancel();
+          setTimeout(() => {
+            source.setRaw(`wait-for-change/cancelled`, `stopped`).then(() => {
+              done();
+            }).catch(() => {
+              assert.fail('never called');
+            });
+          }, 100);
+        }, true), 300);
+      }, true);
     });
   });
 
