@@ -49,7 +49,9 @@ if (ret.isErr()) {
 }
 ```
 
-WaitMaster Strategy is used:
+The WaitMaster Strategy is used for elected a master of your
+workers. If you have 10 works and you want to elect one of these
+workers to a master use the strategy.
 
 ```javascript
   await WaitMaster.create("cid", etc, 100, 100,
@@ -62,3 +64,23 @@ WaitMaster Strategy is used:
   )
 }
 ```
+
+If you want to observe changes of one entry or a directory. You
+could create with:
+
+```javascript
+  const source = etcd.Etcd.create(wc);
+  const ccw = source.createChangeWaiter('wait-for-change', { recursive: true });
+```
+
+an instance which allows you to observe the changes with then,catch and if you
+need you could cancel/stop the observation. The cancel currently does not abort
+the running requests, but stops there processing. 
+
+
+```javascript
+    ccw.then((er) => { /* process your changes */ });
+    ccw.catch((er) => { /* catch the error */ });
+    ccw.cancel(); /* stop the current then and catches */
+```
+
