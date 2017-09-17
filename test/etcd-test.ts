@@ -15,11 +15,14 @@ describe('etcd', function (): void {
       '--etcd-req-timeout', '50',
       '--etcd-url', 'http://localhost:2379'
     ]);
+    console.log('etcd Cluster Booted...0');
     let etc = etcd.EtcdPromise.create(wc);
+    console.log('etcd Cluster Booted...1');
     await etc.connect();
-    console.log('etcd Cluster Booted');
+    console.log('etcd Cluster Booted...2');
     return Promise.resolve('done');
   });
+
   it('AsyncPromise Blocking', async () => {
     let value = 1;
     let out = new Promise(async (r, j) => {

@@ -4,18 +4,15 @@ export class EtcError {
   public statusErr?: number;
   // public transErr?: rqErr.TransformError;
   public unknown?: any;
+
   public static fromJson(err: any): EtcError {
     let ee = new EtcError();
-    // if (typeof (err) == 'RequestError') {
-    //   return ee;
-    // }
-    if (typeof (err.statusCode) == 'number' && err.statusCode != 200) {
+    if (err.err && err.err.errorCode) {
+      // console.log('Err:', err.err);
       ee.statusErr = err;
       return ee;
     }
-    // if (typeof (err) == 'TransformError') {
-    //   return ee;
-    // }
+    // console.log('Err:unknown:', err);
     ee.unknown = err;
     return ee;
   }

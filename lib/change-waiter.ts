@@ -1,30 +1,30 @@
 import EtcResponse from './etc-response';
 import EtcValueNode from './etc-value-node';
-import Etcd from './etcd-promise';
+import Etcd from './etcd-observable';
+import * as rx from 'rxjs';
 
 class CancelableRequest {
   private readonly cw: ChangeWaiter;
-  private readonly req: Promise<EtcResponse>;
+  private readonly req: rx.Observable<EtcResponse>;
   private thenCbs: ((v: EtcResponse) => void)[];
   private catchCbs: ((v: any) => void)[];
   private cancelledCbs: (() => void)[];
   private gotCancel: boolean;
 
-  constructor(cw: ChangeWaiter, req: Promise<EtcResponse>) {
+  constructor(cw: ChangeWaiter, req: rx.Observable<EtcResponse>) {
     this.cw = cw;
     this.req = req;
     this.thenCbs = [];
     this.catchCbs = [];
     this.cancelledCbs = [];
     this.gotCancel = false;
-    this.req.then((v: EtcResponse) => {
+    this.req.subscribe((v: EtcResponse) => {
       if (this.gotCancel) {
         this.cw.etcd.cfg.log.debug('cancelled');
         return;
       }
       this.thenCbs.forEach(tc => tc(v));
-    });
-    this.req.catch((reason: any) => {
+    }, (reason: any) => {
       this.catchCbs.forEach(rj => rj(reason));
     });
   }

@@ -46,17 +46,16 @@ describe('wait-master', function(): void {
     // this.timeout(10000)
     let uuid = Uuid.v4().toString();
     let wc = etcd.Config.start([]);
-    let etc = etcd.EtcdPromise.create(wc);
+    let etc = etcd.EtcdObserable.create(wc);
     let masters: number[] = [];
     let waitMasters: etcd.WaitMaster[] = [];
     let totalWaiters = 10;
     for (let i = 0; i < totalWaiters; ++i) {
       masters[i] = 0;
-      let wmc = await etcd.WaitMaster.create(uuid, etc, 100, 100,
+      etcd.WaitMaster.create(uuid, etc, 100, 100,
         ((id): () => void => { return () => { ++masters[id]; }; })(i),
         ((id): () => void => { return () => { --masters[id]; }; })(i),
-      );
-      waitMasters.push(wmc);
+      ).subscribe(wmc => waitMasters.push(wmc));
     }
     await new Promise((res, rej) => { setTimeout(res, 400); });
     assert.equal(mastersSum(masters), 1, 'master count 1 A');
@@ -74,7 +73,7 @@ describe('wait-master', function(): void {
     assert.equal(stopCount(waitMasters), 2, 'stop count 1 I');
 
     let wm = await etcd.WaitMaster.create(uuid, etc, 100, 100,
-      () => assert('will not get the master'), () => assert('do not stop'));
+      () => assert('will not get the master'), () => assert('do not stop')).toPromise();
     await new Promise((res, rej) => { setTimeout(res, 150); });
     await wm.stop();
     assert.equal(mastersSum(masters), 1, 'master count 1 J');
