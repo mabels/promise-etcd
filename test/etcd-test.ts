@@ -182,6 +182,21 @@ describe('etcd', function (): void {
     return Promise.resolve('done');
   });
 
+  it('empty-list', async () => {
+    let uuid = Uuid.v4().toString();
+    let wc = etcd.Config.start(['--etcd-cluster-id', uuid]);
+    let etc = etcd.EtcdPromise.create(wc);
+    let lst = await etc.list('');
+    assert.isTrue(lst.isErr());
+    await etc.mkdir('');
+    lst = await etc.list('');
+    assert.isFalse(lst.isErr());
+    await etc.mkdir('meno');
+    lst = await etc.list('');
+    //console.log('tttt', lst.value[0]);
+    assert.isTrue(lst.value[0].key.endsWith('meno'));
+  });
+
   it('mkdir', async () => {
     let uuid = Uuid.v4().toString();
     let wc = etcd.Config.start(['--etcd-cluster-id', uuid]);

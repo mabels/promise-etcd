@@ -294,19 +294,23 @@ export class EtcdObserable {
   }
 
   public list(key: string, params: any = {}): rx.Observable<EtcValue<EtcValueNode[]>> {
-    // console.log('list:', `${key}${this.urlParams(params, '?')}`)
     return rx.Observable.create((obs: rx.Observer<EtcValue<EtcValueNode[]>>) => {
+      //  console.log('list:-CALL', `${key}${this.urlParams(params, '?')}`)
       this.keyAction('GET', `${key}${this.urlParams(params, '?')}`).subscribe((list) => {
+        // console.log('list:-SUB', `${key}${this.urlParams(params, '?')}`, list, list.isErr())
         if (list.isErr()) {
           obs.next(EtcValue.error<EtcValueNode[]>(list));
-        }
-        if (!list.node.dir) {
+        } else if (!list.node.dir) {
           obs.next(EtcValue.error<EtcValueNode[]>('not a directory'));
         } else {
           obs.next(EtcValue.value(list.node.nodes));
         }
         obs.complete();
-      });
+        }, (e) => {
+          obs.next(EtcValue.error<EtcValueNode[]>(e));
+        }, () => {
+          /* */
+        });
     });
   }
 
