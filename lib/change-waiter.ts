@@ -57,8 +57,7 @@ interface WaitAndWaitIndex {
   waitIndex: number;
 }
 
-export class ChangeWaiter implements Promise<EtcResponse> {
-  public readonly [Symbol.toStringTag]: 'Promise'; // funky stuff?
+export class ChangeWaiter {
   public readonly etcd: Etcd;
   private path: string;
   private rejects: ((r: any) => void)[];
@@ -132,10 +131,8 @@ export class ChangeWaiter implements Promise<EtcResponse> {
     });
   }
 
-  public then<TResult1 = EtcResponse, TResult2 = never>(
-    onfulfilled?: (value: EtcResponse) => TResult1 | PromiseLike<TResult1>,
-    onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>)
-    : Promise<TResult1 | TResult2> {
+  public subscribe(onfulfilled: (value: EtcResponse) => void,
+              onrejected?: (reason: any) => void): ChangeWaiter {
     if (onfulfilled) {
       this.fulfilled.push(onfulfilled);
     }
@@ -147,16 +144,7 @@ export class ChangeWaiter implements Promise<EtcResponse> {
     if (onrejected) {
       this.rejects.push(onrejected);
     }
-    return this as any; // type hack
-  }
-
-  public catch<TResult = never>(
-    onrejected?: (reason: any) => TResult | PromiseLike<TResult>)
-    : Promise<EtcResponse | TResult> {
-    if (onrejected) {
-      this.rejects.push(onrejected);
-    }
-    return this as Promise<EtcResponse>;
+    return this;
   }
 
 }

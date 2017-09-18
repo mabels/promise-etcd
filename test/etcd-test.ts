@@ -238,7 +238,7 @@ describe('etcd', function (): void {
 
   function changeWriterThen(source: etcd.EtcdPromise, ccw: etcd.ChangeWaiter, cnt: any, done: any): void {
     let nested = 0;
-    ccw.then((er) => {
+    ccw.subscribe((er) => {
       nested++;
       let node = er.node;
       if (er.node.dir) {
@@ -258,7 +258,7 @@ describe('etcd', function (): void {
         updateData(source, ccw, cnt, done, false);
       }
       --nested;
-    }).catch(() => {
+    }, () => {
       assert.fail('should never called');
     });
   }
