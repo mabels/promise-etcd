@@ -193,7 +193,6 @@ describe('etcd', function (): void {
     assert.isFalse(lst.isErr());
     await etc.mkdir('meno');
     lst = await etc.list('');
-    //console.log('tttt', lst.value[0]);
     assert.isTrue(lst.value[0].key.endsWith('meno'));
   });
 
