@@ -5,7 +5,7 @@ import * as rx from 'rxjs';
 export interface Apply {
     // return !null means set
     // return null  skip set
-    (obj: rx.Subject<any>): void;
+    (inp: any, out: rx.Subject<any>): void;
 }
 
 export class Upset {

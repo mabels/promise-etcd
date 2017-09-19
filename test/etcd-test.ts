@@ -317,14 +317,16 @@ describe('etcd', function (): void {
   });
 
   function upsetTester(obEtcd: etcd.EtcdObservable, done: any,
-    apply: (lc: any, sub: rx.Subject<any>) => void, test: (lc: any, done: any) => void): void {
+    apply: (lc: any, inp: any, sub: rx.Subject<any>) => void, test: (lc: any, done: any) => void): void {
     const lifeCycle = {
       apply: 0,
       next: 0,
       error: 0,
       complete: 0
     };
-    const upset = etcd.Upset.create(obEtcd).upSet('upset', apply)
+    const upset = etcd.Upset.create(obEtcd).upSet('upset', (inp: any, obs: rx.Subject<any>) => {
+      apply(lifeCycle, inp, obs);
+    });
     upset.subscribe(() => {
       lifeCycle.next++;
     }, (error: any) => {
@@ -343,8 +345,8 @@ describe('etcd', function (): void {
       '--etcd-cluster-id', uuid,
       '--etcd-req-timeout', '200']);
     const obEtcd = etcd.EtcdObservable.create(wc);
-    upsetTester(obEtcd, done, (lifeCycle: any, outer: rx.Subject<any>) => {
-      assert.isNull(outer);
+    upsetTester(obEtcd, done, (lifeCycle: any, inp: any, outer: rx.Subject<any>) => {
+      assert.isNull(inp);
       lifeCycle.apply++;
       outer.complete();
     }, (lifeCycle: any, _done: any) => {
@@ -370,8 +372,8 @@ describe('etcd', function (): void {
       '--etcd-cluster-id', uuid,
       '--etcd-req-timeout', '200']);
     const obEtcd = etcd.EtcdObservable.create(wc);
-    upsetTester(obEtcd, done, (lifeCycle: any, outer: rx.Subject<any>) => {
-      assert.isNull(outer);
+    upsetTester(obEtcd, done, (lifeCycle: any, inp: any, outer: rx.Subject<any>) => {
+      assert.isNull(inp);
       lifeCycle.apply++;
       outer.next({ 'hello': 'world' });
       outer.complete();
@@ -399,8 +401,8 @@ describe('etcd', function (): void {
       '--etcd-cluster-id', uuid,
       '--etcd-req-timeout', '200']);
     const obEtcd = etcd.EtcdObservable.create(wc);
-    upsetTester(obEtcd, done, (lifeCycle: any, outer: rx.Subject<any>) => {
-      assert.isNull(outer);
+    upsetTester(obEtcd, done, (lifeCycle: any, inp: any, outer: rx.Subject<any>) => {
+      assert.isNull(inp);
       lifeCycle.apply++;
       outer.next({ 'hello': 'world' });
       outer.complete();
@@ -417,13 +419,11 @@ describe('etcd', function (): void {
       }, (err) => {
         assert.fail('no error expected');
       }, () => {
-        upsetTester(obEtcd, done, (_lifeCycle: any, outer: rx.Subject<any>) => {
-          outer.subscribe(data => {
-            assert.deepEqual(data, { 'hello': 'world' });
-            _lifeCycle.apply++;
-            outer.next({ 'world': 'hello' });
-            outer.complete();
-          });
+        upsetTester(obEtcd, done, (_lifeCycle: any, inp: any, outer: rx.Subject<any>) => {
+          assert.deepEqual(inp, { 'hello': 'world' });
+          _lifeCycle.apply++;
+          outer.next({ 'world': 'hello' });
+          outer.complete();
         }, (_lifeCycle: any, __done: any) => {
           assert.equal(_lifeCycle.apply, 1);
           assert.equal(_lifeCycle.next, 1);
@@ -450,15 +450,13 @@ describe('etcd', function (): void {
       '--etcd-cluster-id', uuid,
       '--etcd-req-timeout', '200']);
     const obEtcd = etcd.EtcdObservable.create(wc);
-    upsetTester(obEtcd, done, (lifeCycle: any, outer: rx.Subject<any>) => {
-      if (lifeCycle.appy == 0) {
-       upsetTester(obEtcd, done, (_lifeCycle: any, outer: rx.Subject<any>) => {
-          outer.subscribe(data => {
-            assert.deepEqual(data, { 'hello': 'world' });
-            _lifeCycle.apply++;
-            outer.next({ 'world': 'hello' });
-            outer.complete();
-          });
+    upsetTester(obEtcd, done, (lifeCycle: any, inp: any, outer: rx.Subject<any>) => {
+      if (lifeCycle.apply == 0) {
+        upsetTester(obEtcd, done, (_lifeCycle: any, _inp: any, _outer: rx.Subject<any>) => {
+          assert.isNull(_inp);
+          _lifeCycle.apply++;
+          outer.next({ 'hello': 'world' });
+          outer.complete();
         }, (_lifeCycle: any, __done: any) => {
           assert.equal(_lifeCycle.apply, 1);
           assert.equal(_lifeCycle.next, 1);
@@ -468,7 +466,7 @@ describe('etcd', function (): void {
             if (er.isErr()) {
               assert.fail('not found');
             }
-            assert.deepEqual(JSON.parse(er.node.value), { 'world': 'hello' });
+            assert.deepEqual(JSON.parse(er.node.value), { 'hello': 'world' });
           }, (err) => {
             assert.fail('no error expected');
           }, () => {
@@ -476,12 +474,12 @@ describe('etcd', function (): void {
           });
         });
       }
-      assert.isNull(outer);
+      assert.isNull(inp);
       lifeCycle.apply++;
-      outer.next({ 'hello': 'world' });
+      outer.next({ 'world': 'hello' });
       outer.complete();
     }, (lifeCycle: any, _done: any) => {
-      assert.equal(lifeCycle.apply, 1);
+      assert.equal(lifeCycle.apply, 2);
       assert.equal(lifeCycle.next, 1);
       assert.equal(lifeCycle.error, 0);
       assert.equal(lifeCycle.complete, 1);
@@ -489,7 +487,7 @@ describe('etcd', function (): void {
         if (er.isErr()) {
           assert.fail('not found');
         }
-        assert.deepEqual(JSON.parse(er.node.value), { 'hello': 'world' });
+        assert.deepEqual(JSON.parse(er.node.value), { 'world': 'hello' });
       }, (err) => {
         assert.fail('no error expected');
       }, () => {
