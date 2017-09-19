@@ -321,7 +321,7 @@ export class EtcdObserable {
 
   public getString(key: string, params: any = {}): rx.Observable<EtcValue<string>> {
     return rx.Observable.create((obs: rx.Observer<EtcValue<string>>) => {
-      this.getRaw(key, params).subscribe((er) => {
+      this.getRaw(key, params).subscribe((er: EtcResponse) => {
         if (er.isErr()) {
           obs.next(EtcValue.error<string>(er));
         } else {
@@ -336,13 +336,13 @@ export class EtcdObserable {
 
   public getJson(key: string, params: any = {}): rx.Observable<EtcValue<any>> {
     return rx.Observable.create((obs: rx.Observer<EtcValue<any>>) => {
-      this.getRaw(key, params).subscribe(ret => {
+      this.getRaw(key, params).subscribe((ret: EtcResponse) => {
         if (ret.isErr()) {
           obs.next(EtcValue.error(ret));
         } else {
           obs.next(EtcValue.value(JSON.parse(ret.node.value)));
         }
-      }, (err) => {
+      }, (err: any) => {
         obs.next(EtcValue.error(err));
       }, () => obs.complete());
     });
@@ -351,9 +351,9 @@ export class EtcdObserable {
   public setRaw(key: string, val: string): rx.Observable<EtcResponse> {
     return rx.Observable.create((obs: rx.Observer<EtcResponse>) => {
       this.keyAction('PUT', key, this.bodyParams({ value: val }))
-        .subscribe(ret => {
+        .subscribe((ret: EtcResponse) => {
           obs.next(ret);
-        }, err => {
+        }, (err: any) => {
           obs.next(EtcResponse.error(err));
         }, () => obs.complete());
     });

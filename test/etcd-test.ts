@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import * as Uuid from 'uuid';
 import * as etcd from '../lib/index';
+import * as rx from 'rxjs';
 
 /*
 function param(arr: string[], uuid: string): string[] {
@@ -312,6 +313,188 @@ describe('etcd', function (): void {
           }, 100);
         }, true), 300);
       }, true);
+    });
+  });
+
+  function upsetTester(obEtcd: etcd.EtcdObservable, done: any,
+    apply: (lc: any, sub: rx.Subject<any>) => void, test: (lc: any, done: any) => void): void {
+    const lifeCycle = {
+      apply: 0,
+      next: 0,
+      error: 0,
+      complete: 0
+    };
+    const upset = etcd.Upset.create(obEtcd).upSet('upset', apply)
+    upset.subscribe(() => {
+      lifeCycle.next++;
+    }, (error: any) => {
+      lifeCycle.error++;
+    }, () => {
+      lifeCycle.complete++;
+    });
+    upset.subscribe(null, null, () => {
+      test(lifeCycle, done);
+    });
+  }
+
+  it('upset-empty-noopt', (done) => {
+    const uuid = Uuid.v4().toString();
+    const wc = etcd.Config.start([
+      '--etcd-cluster-id', uuid,
+      '--etcd-req-timeout', '200']);
+    const obEtcd = etcd.EtcdObservable.create(wc);
+    upsetTester(obEtcd, done, (lifeCycle: any, outer: rx.Subject<any>) => {
+      assert.isNull(outer);
+      lifeCycle.apply++;
+      outer.complete();
+    }, (lifeCycle: any, _done: any) => {
+      assert.equal(lifeCycle.apply, 1);
+      assert.equal(lifeCycle.next, 1);
+      assert.equal(lifeCycle.error, 0);
+      assert.equal(lifeCycle.complete, 1);
+      obEtcd.getRaw('upset').subscribe((er) => {
+        if (er.isErr()) {
+          assert.fail('not found');
+        }
+      }, (err) => {
+        assert.fail('no error expected');
+      }, () => {
+        _done();
+      });
+    });
+  });
+
+  it('upset-from-empty-set', (done) => {
+    const uuid = Uuid.v4().toString();
+    const wc = etcd.Config.start([
+      '--etcd-cluster-id', uuid,
+      '--etcd-req-timeout', '200']);
+    const obEtcd = etcd.EtcdObservable.create(wc);
+    upsetTester(obEtcd, done, (lifeCycle: any, outer: rx.Subject<any>) => {
+      assert.isNull(outer);
+      lifeCycle.apply++;
+      outer.next({ 'hello': 'world' });
+      outer.complete();
+    }, (lifeCycle: any, _done: any) => {
+      assert.equal(lifeCycle.apply, 1);
+      assert.equal(lifeCycle.next, 1);
+      assert.equal(lifeCycle.error, 0);
+      assert.equal(lifeCycle.complete, 1);
+      obEtcd.getRaw('upset').subscribe((er) => {
+        if (er.isErr()) {
+          assert.fail('not found');
+        }
+        assert.deepEqual(JSON.parse(er.node.value), { 'hello': 'world' });
+      }, (err) => {
+        assert.fail('no error expected');
+      }, () => {
+        _done();
+      });
+    });
+  });
+
+  it('upset-from-nonempty-set', (done) => {
+    const uuid = Uuid.v4().toString();
+    const wc = etcd.Config.start([
+      '--etcd-cluster-id', uuid,
+      '--etcd-req-timeout', '200']);
+    const obEtcd = etcd.EtcdObservable.create(wc);
+    upsetTester(obEtcd, done, (lifeCycle: any, outer: rx.Subject<any>) => {
+      assert.isNull(outer);
+      lifeCycle.apply++;
+      outer.next({ 'hello': 'world' });
+      outer.complete();
+    }, (lifeCycle: any, _done: any) => {
+      assert.equal(lifeCycle.apply, 1);
+      assert.equal(lifeCycle.next, 1);
+      assert.equal(lifeCycle.error, 0);
+      assert.equal(lifeCycle.complete, 1);
+      obEtcd.getRaw('upset').subscribe((er) => {
+        if (er.isErr()) {
+          assert.fail('not found');
+        }
+        assert.deepEqual(JSON.parse(er.node.value), { 'hello': 'world' });
+      }, (err) => {
+        assert.fail('no error expected');
+      }, () => {
+        upsetTester(obEtcd, done, (_lifeCycle: any, outer: rx.Subject<any>) => {
+          outer.subscribe(data => {
+            assert.deepEqual(data, { 'hello': 'world' });
+            _lifeCycle.apply++;
+            outer.next({ 'world': 'hello' });
+            outer.complete();
+          });
+        }, (_lifeCycle: any, __done: any) => {
+          assert.equal(_lifeCycle.apply, 1);
+          assert.equal(_lifeCycle.next, 1);
+          assert.equal(_lifeCycle.error, 0);
+          assert.equal(_lifeCycle.complete, 1);
+          obEtcd.getRaw('upset').subscribe((er) => {
+            if (er.isErr()) {
+              assert.fail('not found');
+            }
+            assert.deepEqual(JSON.parse(er.node.value), { 'world': 'hello' });
+          }, (err) => {
+            assert.fail('no error expected');
+          }, () => {
+            __done();
+          });
+        });
+      });
+    });
+  });
+
+  it('upset-set-concurrent', (done) => {
+    const uuid = Uuid.v4().toString();
+    const wc = etcd.Config.start([
+      '--etcd-cluster-id', uuid,
+      '--etcd-req-timeout', '200']);
+    const obEtcd = etcd.EtcdObservable.create(wc);
+    upsetTester(obEtcd, done, (lifeCycle: any, outer: rx.Subject<any>) => {
+      if (lifeCycle.appy == 0) {
+       upsetTester(obEtcd, done, (_lifeCycle: any, outer: rx.Subject<any>) => {
+          outer.subscribe(data => {
+            assert.deepEqual(data, { 'hello': 'world' });
+            _lifeCycle.apply++;
+            outer.next({ 'world': 'hello' });
+            outer.complete();
+          });
+        }, (_lifeCycle: any, __done: any) => {
+          assert.equal(_lifeCycle.apply, 1);
+          assert.equal(_lifeCycle.next, 1);
+          assert.equal(_lifeCycle.error, 0);
+          assert.equal(_lifeCycle.complete, 1);
+          obEtcd.getRaw('upset').subscribe((er) => {
+            if (er.isErr()) {
+              assert.fail('not found');
+            }
+            assert.deepEqual(JSON.parse(er.node.value), { 'world': 'hello' });
+          }, (err) => {
+            assert.fail('no error expected');
+          }, () => {
+            __done();
+          });
+        });
+      }
+      assert.isNull(outer);
+      lifeCycle.apply++;
+      outer.next({ 'hello': 'world' });
+      outer.complete();
+    }, (lifeCycle: any, _done: any) => {
+      assert.equal(lifeCycle.apply, 1);
+      assert.equal(lifeCycle.next, 1);
+      assert.equal(lifeCycle.error, 0);
+      assert.equal(lifeCycle.complete, 1);
+      obEtcd.getRaw('upset').subscribe((er) => {
+        if (er.isErr()) {
+          assert.fail('not found');
+        }
+        assert.deepEqual(JSON.parse(er.node.value), { 'hello': 'world' });
+      }, (err) => {
+        assert.fail('no error expected');
+      }, () => {
+        _done();
+      });
     });
   });
 
