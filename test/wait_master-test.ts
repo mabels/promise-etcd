@@ -46,7 +46,7 @@ describe('wait-master', function(): void {
     // this.timeout(10000)
     let uuid = Uuid.v4().toString();
     let wc = etcd.Config.start([]);
-    let etc = etcd.EtcdObserable.create(wc);
+    let etc = etcd.EtcdObservable.create(wc);
     let masters: number[] = [];
     let waitMasters: etcd.WaitMaster[] = [];
     let totalWaiters = 10;

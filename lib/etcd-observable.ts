@@ -6,24 +6,25 @@ import EtcResponse from './etc-response';
 import EtcValue from './etc-value';
 import EtcValueNode from './etc-value-node';
 import Dispatcher from './dispatcher';
+import * as upset from './upset';
 
 import * as rx from 'rxjs';
 
-export class EtcdObserable {
+export class EtcdObservable {
   public cfg: Config;
   private connected?: SelfState = null;
 
   private selfStateInActions: { [id: string]: Dispatcher<SelfState>[] } = {};
 
-  public static create(cfg: Config): EtcdObserable {
-    return new EtcdObserable(cfg);
+  public static create(cfg: Config): EtcdObservable {
+    return new EtcdObservable(cfg);
   }
 
   constructor(cfg: Config) {
     this.cfg = cfg;
   }
 
-  private request(method: string, url: string, options: any = {}): rx.Observable<any> {
+  private etcdRequest(method: string, url: string, options: any = {}): rx.Observable<any> {
     return rx.Observable.create((ob: rx.Observer<any>) => {
       this.connect().subscribe((c) => {
         if (!c.isOk()) {
@@ -92,6 +93,7 @@ export class EtcdObserable {
       uri: url
     };
     options = Object.assign(my, options);
+    this.cfg.log.debug('rawRequest', options);
     return request(options);
   }
 
@@ -257,7 +259,7 @@ export class EtcdObserable {
     let uri = this.buildKeyUri('/v2/keys', key);
     this.cfg.log.debug('keyAction', method, uri, options);
     return rx.Observable.create((obs: rx.Observer<EtcResponse>) => {
-      this.request(method, uri, options).subscribe((ret) => {
+      this.etcdRequest(method, uri, options).subscribe((ret) => {
         // console.log('keyAction:ret:');
         obs.next(EtcResponse.fromJson(ret));
         obs.complete();
@@ -348,9 +350,10 @@ export class EtcdObserable {
     });
   }
 
-  public setRaw(key: string, val: string): rx.Observable<EtcResponse> {
+  public setRaw(key: string, val: string, params: any = {}): rx.Observable<EtcResponse> {
     return rx.Observable.create((obs: rx.Observer<EtcResponse>) => {
-      this.keyAction('PUT', key, this.bodyParams({ value: val }))
+      this.keyAction('PUT', key,
+        this.bodyParams(Object.assign({ value: val }, params)))
         .subscribe((ret: EtcResponse) => {
           obs.next(ret);
         }, (err: any) => {
@@ -359,14 +362,18 @@ export class EtcdObserable {
     });
   }
 
-  public setJson(key: string, val: any): rx.Observable<EtcResponse> {
-    return this.setRaw(key, JSON.stringify(val));
+  public setJson(key: string, val: any, params: any = {}): rx.Observable<EtcResponse> {
+    return this.setRaw(key, JSON.stringify(val), params);
   }
 
   public createChangeWaiter(path: string, params: any = {}, options: any = {}): ChangeWaiter {
     return new ChangeWaiter(this, path, params, options);
   }
 
+  public createUpset(key: string, apply: upset.Apply): rx.Observable<void> {
+    return upset.Upset.create(this).upSet('upset', apply);
+  }
+
 }
 
-export default EtcdObserable;
+export default EtcdObservable;

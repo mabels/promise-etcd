@@ -325,16 +325,23 @@ describe('etcd', function (): void {
       complete: 0
     };
     const upset = etcd.Upset.create(obEtcd).upSet('upset', (inp: any, obs: rx.Subject<any>) => {
+      // console.log('apply');
       apply(lifeCycle, inp, obs);
     });
+    const completed = new rx.Subject<void>();
     upset.subscribe(() => {
+      // console.log('next');
       lifeCycle.next++;
     }, (error: any) => {
+      // console.log('error');
       lifeCycle.error++;
     }, () => {
+      // console.log('complete');
       lifeCycle.complete++;
+      completed.complete();
     });
-    upset.subscribe(null, null, () => {
+    completed.subscribe(null, null, () => {
+      // console.log('2-next', lifeCycle);
       test(lifeCycle, done);
     });
   }
@@ -351,13 +358,14 @@ describe('etcd', function (): void {
       outer.complete();
     }, (lifeCycle: any, _done: any) => {
       assert.equal(lifeCycle.apply, 1);
-      assert.equal(lifeCycle.next, 1);
+      assert.equal(lifeCycle.next, 0);
       assert.equal(lifeCycle.error, 0);
       assert.equal(lifeCycle.complete, 1);
       obEtcd.getRaw('upset').subscribe((er) => {
-        if (er.isErr()) {
-          assert.fail('not found');
+        if (er.isErr() && er.err.etcErr.errorCode == 100) {
+          return;
         }
+        assert.fail('never reached');
       }, (err) => {
         assert.fail('no error expected');
       }, () => {
@@ -382,14 +390,20 @@ describe('etcd', function (): void {
       assert.equal(lifeCycle.next, 1);
       assert.equal(lifeCycle.error, 0);
       assert.equal(lifeCycle.complete, 1);
+      // wc.log.info('empty-set:0');
       obEtcd.getRaw('upset').subscribe((er) => {
+        // wc.log.info('empty-set:1');
         if (er.isErr()) {
+          // wc.log.info('empty-set:2');
           assert.fail('not found');
         }
+        // wc.log.info('empty-set:3');
         assert.deepEqual(JSON.parse(er.node.value), { 'hello': 'world' });
       }, (err) => {
+        // wc.log.info('empty-set:4');
         assert.fail('no error expected');
       }, () => {
+        // wc.log.info('empty-set:5');
         _done();
       });
     });
@@ -452,11 +466,12 @@ describe('etcd', function (): void {
     const obEtcd = etcd.EtcdObservable.create(wc);
     upsetTester(obEtcd, done, (lifeCycle: any, inp: any, outer: rx.Subject<any>) => {
       if (lifeCycle.apply == 0) {
+        // console.log('apply:0');
         upsetTester(obEtcd, done, (_lifeCycle: any, _inp: any, _outer: rx.Subject<any>) => {
           assert.isNull(_inp);
           _lifeCycle.apply++;
-          outer.next({ 'hello': 'world' });
-          outer.complete();
+          _outer.next({ 'hello': 'world' });
+          _outer.complete();
         }, (_lifeCycle: any, __done: any) => {
           assert.equal(_lifeCycle.apply, 1);
           assert.equal(_lifeCycle.next, 1);
@@ -467,17 +482,25 @@ describe('etcd', function (): void {
               assert.fail('not found');
             }
             assert.deepEqual(JSON.parse(er.node.value), { 'hello': 'world' });
+            // wc.log.info('inner.upset:next');
           }, (err) => {
             assert.fail('no error expected');
           }, () => {
-            __done();
+            // wc.log.info('inner.upset:complete:0');
+            assert.isNull(inp);
+            lifeCycle.apply++;
+            outer.next({ 'world': 'hello' });
+            outer.complete();
+            // wc.log.info('inner.upset:complete:1');
           });
         });
+      } else {
+        // console.log('apply:1');
+        assert.deepEqual(inp, { 'hello': 'world' });
+        lifeCycle.apply++;
+        outer.next({ 'world': 'hello' });
+        outer.complete();
       }
-      assert.isNull(inp);
-      lifeCycle.apply++;
-      outer.next({ 'world': 'hello' });
-      outer.complete();
     }, (lifeCycle: any, _done: any) => {
       assert.equal(lifeCycle.apply, 2);
       assert.equal(lifeCycle.next, 1);
