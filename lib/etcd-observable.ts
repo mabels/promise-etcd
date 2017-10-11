@@ -100,7 +100,13 @@ export class EtcdObservable {
   private urlParams(params: any, sep = ''): string {
     let paramsStr = '';
     for (let key in params) {
-      paramsStr += `${sep}${key}=${params[key]}`;
+      paramsStr += sep;
+      paramsStr += `${encodeURIComponent(`${key}`)}=`;
+      if (typeof(params[key]) == 'string') {
+        paramsStr += encodeURIComponent(params[key]);
+      } else {
+        paramsStr += `${params[key]}`;
+      }
       sep = '&';
     }
     return paramsStr;

@@ -9,6 +9,98 @@ function param(arr: string[], uuid: string): string[] {
 }
 */
 
+function largeTest(): any {
+  return { name: 'test',
+    nodes: [ { name: 'test-node', binds: [null] } ],
+    tls: {
+     tlsChain: null,
+     tlsCert: `-----BEGIN CERTIFICATE-----
+     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
+     -----END CERTIFICATE-----`,
+     tlsKey: `-----BEGIN PRIVATE KEY-----
+     MIIJQgIBADANBgkqhkiG9w0BAQEFAASCCSwwggkoAgEAAoICAQDUFWQfpY60dvuC
+     PG56hq1E1XSqix8lRKBYdezK4ZszT46VHqadcVJEsugcTukjNcAEQB2PeEfVwZ6u
+     zXkqOcvakt7NpsG0l3IJnOHWy2OsvI97SKZJxbm/fZhFlJ0Vcez7kcudVzbPOYfu
+     rk0nQBpWswa2ViEbifsn93rA21OG42CM2RfT++kwXGmmLEBVzfZ8m9SP+CqjSFpT
+     x05u5mcrw5MMtrIPRlvQUOErYZf5L6bSImuFRSYHyRhp/W1ab+kzxzFtI/j203gX
+     EqlJHTXdNfL80uOOLywk+7AMyGZ/jCIL89MNKUiUbiTUs3VtfaXCEDSQg4xTEGME
+     j8A98T4GH9Mztq1rm9W28Mp2z39x0YtTHQxxBsBdgR4oqwgFcEchxv9+JHewyCLL
+     MVbthAeFn3wkyn0e+n0ETCVxnZstslgMzcX38q7MBGZOteAJRxnGM3vQ0oZR2aHo
+     dqDSg/k7rOxznd2iHdnE62lnoMjQ/j9Rf4nGgZ8zO8vD0fSvTpeu0DN0Y9pTp77X
+     uoVuYgXXY2CjIiNaiv7Pi5C0liMSOkN7LQp8ke/dJdujXNDUdDpQ0aKMHy+RmhKL
+     engJ0V6rBCdVDLMKUMcw6OrTIrow7wtvpEhtPhgWmS5/U4b5axdvKwh0quepzQK3
+     BDfqZJPiQoUvyfOR4pn6VLaJtI3N1QIDAQABAoICABpVAZZwTtSXRUj5SdpKqG64
+     dgDKvzY4XBQ/qAPUmRl40kIviQ5ZSJahA/Kn1Yh6nvmoIEN08q5WmOYpOtcEUAw2
+     WhV8k+ZhO1Z4NQ4fOKP00XfEIGledF6TMHnLJunHuF3Pz1EcyABYq0j2OTwbWGnV
+     VosDDJ9HtXhT4NjbInbH+m/icHPwfhZ0EuX/7oj4xpbYHj81181oKVbnkxRv5PVp
+     FfPpJxiAatvlft+NAXp98R98CI+Gc19aF37paU9mP7UfEUL0yW+T+AAdYAlk6BAs
+     J5w+buRzdO6ulUAxDZDejEehoV2r94f+WPJTycurYw5CRtR+kMiray/gzUSjlEii
+     f8Jr4yA6MTkEH2GrlYO9zSC9Bsvbq+rWjFjf+jIJmoK5o8nnxUHPGVqkqpROdiBP
+     DGeeJV2FM9ZbDDj4PIoBJT3j6EnT47s3GxMfwAi4ichkV04ins4wV/MoG/HmUvSe
+     b+6Mp4IdAYuYcAxD9WxDmO+SBmOUb0BgQzoFy3zi4D7AfVrchpujcuWDSXPE/sVF
+     /vtL9xLcmHH435mjNd+x39Om0idsPFyNdlF/g09OZAmmHyh+M+f7PrkuvnQT1l/Z
+     OUeuF+5sUuBI89ewCHDAkytFYCiIGizVJshh7TZ61p9W61lL4KPXvgVQXqOyQiH9
+     0au4i7XLdMout+A9TI6BAoIBAQDu8fad+zgr+lAOZ5+KCV+N0RGdsGa/WjVKpezj
+     Wb4F4Vlzt/9fpDYnQuAcQMSA9ywV61HZQOj81+DHgPEC/oymAbk9B1v5ZG0q4OR3
+     PxzGxCpypufz6DNno2f+M+vqAzc1+umXph7aVy4Dvp3cf058FdrfasXMFY6XxXXF
+     wR2/FsJ1HZ13DKJmuO0WsjNeF9lgnD36yQpX1qAOwd9OMyUsr7rjNP61QwDfR2tw
+     A/ZlJ/YYsnWxlNviVnkkAGR6pHxFUUkngf0fgKZJZRDaTyb1APDNRTffOQvreILy
+     Z3uIw+Nfe3smzBuZfogMJ46b8bPG5udwyWliuIy9zNr9ONkhAoIBAQDjOJvmd32c
+     zQyMW8zTyTaPla5RKFpdTZnuMoiZHa7Fpjx5tW9d4T2lNhE2db2B9v/N8KJJM4nB
+     EipxduocR2ys2DqMjfqCWXf1/ARAu0YFnqngHRkiKrGVssJJErN/+oSoIazdaOoI
+     BxXR8EubZbk4CHSM3jyNzrTbyVL0dq93/3jWqWG0SMuFt7SFVx09LA6JCSDyjJgB
+     N+Xz3uTMHwbDyL8quZPvfu8IOhVSrYGaj1k9HM5e3jA5FL9UDmnmPTp+Pf9Um6hJ
+     zk8amET6C08o04mdLFzYoqtvZfaRdc79UR4y2QJ5sitOe5/O4fN+M550dKyDl6Hv
+     RDI81mXoy5o1AoIBAQDB9SspBhmMqT1+0+KPHBiyd3kDNYPR5BnKJHHsApbbExeX
+     dU4YhqVmrURZ6sEXpovkpwXjgmsdgub1StdYhOQKhO+meGjSQhDTc4ZAvbxQJEAI
+     nS8/r8a6Y8wwblkbtcyFRs2CydfViFrTs1FVAQnmc58dKACzLvR2glSdV6sbyA/F
+     HWsKjfjtxUK+35wOzvEnGOy+u55nutJl6D2prp6IbYUYlZYD8QWuOL0fSjgh2JRN
+     a99ZbOooCeV/scneO9KcOeVV6pBbmARjI2TQsNuAmWjeV0eJLTddxo8U0adXVxsk
+     EIng7mGg8TLiGuIJ9+Lkm95WkUe4WPH1x2ojjpfBAoIBAHOz888bsZ8S2vzuEhMW
+     Nu5OrgEtpzYzudqNaPlvH/wNdmYTea44cAeczI8KzYFMoV3g1wKnd9IUygAVKYlU
+     5YXuZYIFGjceD/P2bMP5mOJrtN0mdBHt45fy+vPyzeyxSLPE0h28us9zrCzHS/jJ
+     h9N8mrzQvc0IIRh6H//UH+3e7U2B2vrOxrREo2vyvDTWJmCpgVmBNjYInNPeAGvg
+     sLUpmA7NiQM/g8CQsyLyrzhhHnP8IyozwiKO6g6HeG2BaDO4pjgTO1K595X3S8h3
+     0ctcTIr4eB7oVpvXNANGFizwDYye7J/DlkHUub/DVxZAesOaVe58XD1WYK6SDjrI
+     0rECggEAFHuy5eyQSshzeMQRgxh/HDmUJRmbRsq6kaRSuBjcKPdj1YtHifSuxL0N
+     CoirgsF5XbZZty4Vo2Z9w2FRqT4WKhr03DFZCsqccvDhI0ApW99KGzjEd+67n1C9
+     GiEhub69UErJBX/oVjQmqTH1S8KtlQqify13hM0mvkfP3igGpZwkM3g7m+6U5cD4
+     1INceFrTDtLsMAMyS+dAW4R76uRb2oTNwNyBjjXgntlyLJumXE6wIT23Xs1cCdFx
+     M6YSQ/b/yZ4mjQYz5hX5zxwhIL0suwoiPoICX0Z1XSjHT5zTiE/tyueWNpcfCSag
+     ezYa3gWA157rBXTRLCtKQzXuU9Qpyw==
+     -----END PRIVATE KEY-----`
+    }
+  };
+}
+
 describe('etcd', function (): void {
   this.timeout(2000);
   before(async () => {
@@ -183,6 +275,32 @@ describe('etcd', function (): void {
     return Promise.resolve('done');
   });
 
+  it('large set raw', async () => {
+    let uuid = Uuid.v4().toString();
+    let wc = etcd.Config.start(['--etcd-cluster-id', uuid]);
+    let etc = etcd.EtcdPromise.create(wc);
+    const set_json = JSON.stringify(largeTest(), null, 2);
+    let ret = await etc.setRaw('largeset', set_json);
+    assert.equal(ret.isErr(), false);
+    assert.equal(ret.node.value, set_json);
+    ret = await etc.getRaw('largeset');
+    assert.equal(ret.isErr(), false);
+    assert.equal(ret.node.value, set_json);
+  });
+
+  it('large set json', async () => {
+    let uuid = Uuid.v4().toString();
+    let wc = etcd.Config.start(['--etcd-cluster-id', uuid]);
+    let etc = etcd.EtcdPromise.create(wc);
+    const set_json = JSON.stringify(largeTest(), null, 2);
+    let ret = await etc.setJson('largeset', largeTest());
+    assert.equal(ret.isErr(), false);
+    assert.equal(JSON.stringify(JSON.parse(ret.node.value), null, 2), set_json);
+    let data = await etc.getJson('largeset');
+    assert.equal(data.isErr(), false);
+    assert.equal(JSON.stringify(data.value, null, 2), set_json);
+  });
+
   it('empty-list', async () => {
     let uuid = Uuid.v4().toString();
     let wc = etcd.Config.start(['--etcd-cluster-id', uuid]);
@@ -212,6 +330,8 @@ describe('etcd', function (): void {
 
     ret = await etc.rmdir('meno');
     assert.equal(ret.isOk(), true);
+    // assert.equal(ret.err.statusCode, 404);
+    // assert.equal(ret.err.etcErr.errorCode, 100);
   });
 
   it('rmdir', async () => {
@@ -222,6 +342,7 @@ describe('etcd', function (): void {
     await etc.mkdir('meno/geheim');
     await etc.mkdir('meno/geheim/ganz');
     let ret = await etc.rmdir('meno', { recursive: true });
+    // console.log(ret);
     assert.equal(ret.isOk(), true);
     await etc.mkdir('meno');
     let lst = await etc.list('meno');

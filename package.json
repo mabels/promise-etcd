@@ -1,6 +1,6 @@
 {
   "name": "promise-etcd",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "promise based etcd api includes master election for workers",
   "main": "./dist/lib/index.js",
   "types": "./dist/lib/index.d.ts",
