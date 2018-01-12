@@ -52,10 +52,10 @@ class CancelableRequest {
 
 }
 
-interface WaitAndWaitIndex {
-  wait: boolean;
-  waitIndex: number;
-}
+// interface WaitAndWaitIndex {
+//   wait: boolean;
+//   waitIndex: number;
+// }
 
 export class ChangeWaiter {
   public readonly etcd: Etcd;
@@ -66,7 +66,7 @@ export class ChangeWaiter {
   private params: any;
   private current: any;
   private runningRequests: CancelableRequest[];
-  private getQueue: WaitAndWaitIndex[];
+  // private getQueue: WaitAndWaitIndex[];
 
   constructor(etcd: Etcd, path: string, params: any = {}, options: any = {}) {
     this.etcd = etcd;
@@ -76,7 +76,7 @@ export class ChangeWaiter {
     this.options = options;
     this.params = params;
     this.runningRequests = [];
-    this.getQueue = [];
+    // this.getQueue = [];
   }
 
   public unsubscribe(): void {

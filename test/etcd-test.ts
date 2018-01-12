@@ -118,11 +118,11 @@ describe('etcd', function (): void {
 
   it('AsyncPromise Blocking', async () => {
     let value = 1;
-    let out = new Promise(async (r, j) => {
+    const out = new Promise(async (r, j) => {
       await new Promise((rr, jj) => { setTimeout(rr, 10); });
       ++value;
     });
-    out = null; // WTF Lint
+    out.then(t => { /* */ });
     assert.equal(value, 1);
     await new Promise((rr, jj) => { setTimeout(rr, 15); });
     assert.equal(value, 2);
@@ -397,6 +397,7 @@ describe('etcd', function (): void {
     }, () => {
       assert.fail('should never called');
     });
+    assert.equal(nested, 0);
   }
 
   function updateData(source: etcd.EtcdPromise, ccw: etcd.ChangeWaiter, cnt: any, done: any, install: boolean): void {
