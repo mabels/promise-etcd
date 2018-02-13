@@ -1,6 +1,17 @@
 import * as winston from 'winston';
 import * as yargs from 'yargs';
 
+export interface Response {
+  headers: { [id: string]: string };
+  statusCode: number;
+}
+
+export interface Request {
+  on(a: 'error', cb: (err: Error) => void): void;
+  on(a: 'data', cb: (data: string) => void): void;
+  on(a: 'complete', cb: (resp: Response) => void): void;
+}
+
 export class Config {
   public urls: string[];
   public reqTimeout: number; // msec
@@ -9,6 +20,7 @@ export class Config {
   public clusterId: string;
   public appId: string;
   public log: winston.LoggerInstance;
+  public request: (o: any) => Request;
   public static start(argv: string[], app: string = null): Config {
     let ret = new Config();
     let yarg = yargs.usage('$0 [args]')
@@ -60,6 +72,10 @@ export class Config {
     ret.log.debug('Config:', ret.urls, ret.reqTimeout,
       ret.retries, ret.waitTime, ret.clusterId, ret.appId);
     return ret;
+  }
+  public setRequest(req: (o: any) => Request): Config {
+    this.request = req;
+    return this;
   }
 }
 

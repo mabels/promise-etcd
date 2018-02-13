@@ -1,5 +1,5 @@
-import * as request from 'request';
-import Config from './config';
+// import * as request from 'request';
+import { Config, Request, Response } from './config';
 import ChangeWaiter from './change-waiter';
 import SelfState from './self-state';
 import EtcResponse from './etc-response';
@@ -86,7 +86,7 @@ export class EtcdObservable {
     // }
   }
 
-  private rawRequest(method: string, url: string, options: any = {}): request.Request {
+  private rawRequest(method: string, url: string, options: any = {}): Request {
     let my = {
       method: method,
       timeout: this.cfg.reqTimeout,
@@ -94,7 +94,7 @@ export class EtcdObservable {
     };
     options = Object.assign(my, options);
     this.cfg.log.debug('rawRequest', options);
-    return request(options);
+    return this.cfg.request(options);
   }
 
   private urlParams(params: any, sep = ''): string {
@@ -251,7 +251,7 @@ export class EtcdObservable {
       ret.on('data', (data: string | Buffer) => {
         bodies.push(data.toString());
       });
-      ret.on('complete', (resp) => {
+      ret.on('complete', (resp: Response) => {
         const body = bodies.join('');
         // console.log('selfStat-create:complete:', url, body);
         // this.cfg.log.info('complete', body);

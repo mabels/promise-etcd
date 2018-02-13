@@ -1,3 +1,4 @@
+import * as request from 'request';
 import { assert } from 'chai';
 import * as Uuid from 'uuid';
 import * as etcd from '../lib/index';
@@ -45,7 +46,7 @@ describe('wait-master', function(): void {
   it('elect-master', async () => {
     // this.timeout(10000)
     let uuid = Uuid.v4().toString();
-    let wc = etcd.Config.start([]);
+    let wc = etcd.Config.start([]).setRequest(request);
     let etc = etcd.EtcdObservable.create(wc);
     let masters: number[] = [];
     let waitMasters: etcd.WaitMaster[] = [];
