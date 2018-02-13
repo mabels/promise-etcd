@@ -1,5 +1,5 @@
-import * as winston from 'winston';
-import * as yargs from 'yargs';
+//  import * as yargs from 'yargs';
+const clap = require('clap');
 
 export interface Response {
   headers: { [id: string]: string };
@@ -12,6 +12,18 @@ export interface Request {
   on(a: 'complete', cb: (resp: Response) => void): void;
 }
 
+export interface Log {
+  debug(...arg: any[]): void;
+  error(...arg: any[]): void;
+  info(...arg: any[]): void;
+}
+
+const ConsoleLog: Log = {
+  debug(...arg: any[]): void { console.log.apply(console, arg); },
+  error(...arg: any[]): void { console.error.apply(console, arg); },
+  info(...arg: any[]): void { console.log.apply(console, arg); }
+};
+
 export class Config {
   public urls: string[];
   public reqTimeout: number; // msec
@@ -19,43 +31,66 @@ export class Config {
   public waitTime: number; // ms
   public clusterId: string;
   public appId: string;
-  public log: winston.LoggerInstance;
+  public log: Log;
   public request: (o: any) => Request;
-  public static start(argv: string[], app: string = null): Config {
+  public static start(argv: string[], req: (o: any) => Request, log: Log = ConsoleLog, app?: string): Config {
     let ret = new Config();
-    let yarg = yargs.usage('$0 [args]')
-      .option('logLevel', {
-        describe: 'logLevel ala winston',
-        default: 'info'
+    ret.log = log;
+    ret.request = req;
+
+    const urls: string[] = [];
+    const myClap = clap.create('promise-etcd', '')
+      .option('--etcd-cluster-id <arg>', 'require etcd-cluster-id')
+      .option('--etcd-app-id <arg>', 'optional etcd-app-id')
+      .option('--etcd-url <arg>', 'require etcd-url', (value: string) => {
+        urls.push(value);
+        return urls;
       })
-      .option('etcd-cluster-id', {
-        describe: 'etcd-cluster-id',
-        default: null
-      })
-      .option('etcd-app-id', {
-        describe: 'etcd-app-id',
-        default: app
-      })
-      .option('etcd-url', {
-        describe: 'multiple etcd-url',
-        default: ['http://localhost:2379'],
-        array: true
-      })
-      .option('etcd-retries', {
-        describe: 'retry count',
-        number: true,
-        default: 3
-      })
-      .option('etcd-wait-time', {
-        describe: 'wait time',
-        number: true,
-        default: 250
-      })
-      .option('etcd-req-timeout', {
-        describe: 'req timeout',
-        number: true,
-        default: 500
-      }).help().parse(argv);
+      .option('--etcd-retries <arg>', 'require etcd-retries', (value: string) => {
+        return ~~value || 3;
+      }, 3)
+      .option('--etcd-wait-time <arg>', 'require etcd-wait-time', (value: string) => {
+        return ~~value || 250;
+      }, 250)
+      .option('--etcd-req-timeout <arg>', 'require etcd-req-timeout', (value: string) => {
+        return ~~value;
+      }, 500);
+    myClap.run(argv);
+    console.log(argv, myClap.values);
+    const yarg = myClap.values;
+    // let yarg = yargs.usage('$0 [args]')
+    //   // .option('logLevel', {
+    //   //   describe: 'logLevel ala winston',
+    //   //   default: 'info'
+    //   // })
+    //   .option('etcd-cluster-id', {
+    //     describe: 'etcd-cluster-id',
+    //     default: null
+    //   })
+    //   .option('etcd-app-id', {
+    //     describe: 'etcd-app-id',
+    //     default: app || 'promise-etcd'
+    //   })
+    //   .option('etcd-url', {
+    //     describe: 'multiple etcd-url',
+    //     default: ['http://localhost:2379'],
+    //     array: true
+    //   })
+    //   .option('etcd-retries', {
+    //     describe: 'retry count',
+    //     number: true,
+    //     default: 3
+    //   })
+    //   .option('etcd-wait-time', {
+    //     describe: 'wait time',
+    //     number: true,
+    //     default: 250
+    //   })
+    //   .option('etcd-req-timeout', {
+    //     describe: 'req timeout',
+    //     number: true,
+    //     default: 500
+    //   }).help().parse(argv);
 
     ret.urls = yarg.etcdUrl;
     ret.reqTimeout = yarg.etcdReqTimeout;
@@ -63,19 +98,10 @@ export class Config {
     ret.waitTime = yarg.etcdWaitTime;
     ret.clusterId = yarg.etcdClusterId;
     ret.appId = yarg.etcdAppId;
-    ret.log = new winston.Logger({
-      level: yarg.logLevel,
-      transports: [
-        new (winston.transports.Console)(),
-      ]
-    });
+
     ret.log.debug('Config:', ret.urls, ret.reqTimeout,
       ret.retries, ret.waitTime, ret.clusterId, ret.appId);
     return ret;
-  }
-  public setRequest(req: (o: any) => Request): Config {
-    this.request = req;
-    return this;
   }
 }
 
