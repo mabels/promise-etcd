@@ -92,12 +92,12 @@ export class Config {
     //     default: 500
     //   }).help().parse(argv);
 
-    ret.urls = yarg.etcdUrl;
+    ret.urls = yarg.etcdUrl || ['http://localhost:2379'];
     ret.reqTimeout = yarg.etcdReqTimeout;
-    ret.retries = yarg.etcdRetries;
-    ret.waitTime = yarg.etcdWaitTime;
+    ret.retries = yarg.etcdRetries || 3;
+    ret.waitTime = yarg.etcdWaitTime || 250;
     ret.clusterId = yarg.etcdClusterId;
-    ret.appId = yarg.etcdAppId;
+    ret.appId = yarg.etcdAppId || 'promise-etcd';
 
     ret.log.debug('Config:', ret.urls, ret.reqTimeout,
       ret.retries, ret.waitTime, ret.clusterId, ret.appId);

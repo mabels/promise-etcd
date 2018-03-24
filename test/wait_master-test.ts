@@ -1,7 +1,9 @@
+import * as winston from 'winston';
 import * as request from 'request';
 import { assert } from 'chai';
 import * as Uuid from 'uuid';
 import * as etcd from '../lib/index';
+import * as os from 'os';
 
 /*
 function param(arr: string[], uuid: string): string[] {
@@ -41,19 +43,27 @@ function mastersSum(masters: number[]): number {
   return masters.reduce((a, b) => a + b, 0);
 }
 
+const log = new winston.Logger({
+  level: 'info',
+  transports: [
+    new (winston.transports.Console)(),
+  ]
+});
+
 describe('wait-master', function(): void {
   this.timeout(10000);
+  const prefix = `${os.hostname()}-${process.pid}`;
   it('elect-master', async () => {
     // this.timeout(10000)
     let uuid = Uuid.v4().toString();
-    let wc = etcd.Config.start([], request);
+    let wc = etcd.Config.start([], request, log);
     let etc = etcd.EtcdObservable.create(wc);
     let masters: number[] = [];
     let waitMasters: etcd.WaitMaster[] = [];
     let totalWaiters = 10;
     for (let i = 0; i < totalWaiters; ++i) {
       masters[i] = 0;
-      const wmc = await etcd.WaitMaster.create(uuid, etc, 100, 100,
+      const wmc = await etcd.WaitMaster.create(prefix, uuid, etc, 100, 100,
         ((id): () => void => { return () => { ++masters[id]; }; })(i),
         ((id): () => void => { return () => { --masters[id]; }; })(i),
       ).toPromise();
@@ -74,7 +84,7 @@ describe('wait-master', function(): void {
     assert.equal(masterCount(waitMasters), 1, 'master count 1 H');
     assert.equal(stopCount(waitMasters), 2, 'stop count 1 I');
 
-    let wm = await etcd.WaitMaster.create(uuid, etc, 100, 100,
+    let wm = await etcd.WaitMaster.create(prefix, uuid, etc, 100, 100,
       () => assert('will not get the master'),
       () => assert('do not stop')).toPromise();
     await new Promise((res, rej) => { setTimeout(res, 150); });

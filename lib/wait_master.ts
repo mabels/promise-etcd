@@ -1,8 +1,13 @@
 import Etcd from './etcd-observable';
 import * as Uuid from 'uuid';
-import * as os from 'os';
-import * as path from 'path';
+// import * as os from 'os';
+// import * as path from 'path';
 import * as rx from 'rxjs';
+
+function basename(str: string): string {
+  const slashSplit = str.split('/');
+  return slashSplit[slashSplit.length - 1];
+}
 
 export class WaitMaster {
   public etc: Etcd;
@@ -21,15 +26,15 @@ export class WaitMaster {
   public currentAliveTimeOut: any = null;
   public currentWait: rx.Observable<any> = null;
 
-  public static create(key: string, etc: Etcd, ttl: number, saveTtl: number,
-    start: () => void = null, stop: () => void = null): rx.Observable<any> {
+  public static create(prefix: string, key: string, etc: Etcd, ttl: number,
+    saveTtl: number, start: () => void = null, stop: () => void = null): rx.Observable<any> {
     const ret = new WaitMaster(key, etc, ttl, saveTtl, start, stop);
     return rx.Observable.create((obs: rx.Observer<any>) => {
       etc.mkdir(key).subscribe(() => {
-        ret.me = `${os.hostname()}-${process.pid}-${Uuid.v4().toString()}`;
+        ret.me = `${prefix}-${Uuid.v4().toString()}`;
         setTimeout(ret.startWaitChange.bind(ret), 0);
         etc.addQueue(key, ret.me, ret.ttl + ret.saveTtl).subscribe(aq => {
-          ret.aliveQueue = `${key}/${path.basename(aq['node']['key'])}`;
+          ret.aliveQueue = `${key}/${basename(aq['node']['key'])}`;
           ret.startAliveQueue();
           obs.next(ret);
           obs.complete();
@@ -108,7 +113,7 @@ export class WaitMaster {
         }
         let masterId = null;
         if (master.value.length != 0) {
-          masterId = `${this.key}/${path.basename(master.value[0]['key'])}`;
+          masterId = `${this.key}/${basename(master.value[0]['key'])}`;
         }
         if (this.master && masterId != this.aliveQueue) {
           this.doStop(masterId);
