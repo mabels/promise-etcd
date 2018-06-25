@@ -63,10 +63,10 @@ describe('wait-master', function(): void {
     let totalWaiters = 10;
     for (let i = 0; i < totalWaiters; ++i) {
       masters[i] = 0;
+      const inc = (id: number) => { return () => { ++masters[id]; }; };
+      const dec = (id: number) => { return () => { --masters[id]; }; };
       const wmc = await etcd.WaitMaster.create(prefix, uuid, etc, 100, 100,
-        ((id): () => void => { return () => { ++masters[id]; }; })(i),
-        ((id): () => void => { return () => { --masters[id]; }; })(i),
-      ).toPromise();
+        inc(i), dec(i)).toPromise();
       waitMasters.push(wmc);
     }
     await new Promise((res, rej) => { setTimeout(res, 400); });
