@@ -37,7 +37,7 @@
   "dependencies": {
     "@types/minimist": "^1.2.0",
     "@types/uuid": "^3.4.3",
-    "@types/winston": "^2.3.9",
+    "@types/winston": "^2.4.4",
     "@types/yargs": "^8.0.3",
     "clap": "^1.2.3",
     "minimist": "^1.2.0",
