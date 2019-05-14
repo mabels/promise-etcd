@@ -41,7 +41,7 @@
     "@types/yargs": "^8.0.3",
     "clap": "^1.2.3",
     "minimist": "^1.2.0",
-    "puppeteer": "^1.5.0",
+    "puppeteer": "^1.16.0",
     "rxjs": "^5.5.11",
     "uuid": "^3.2.1",
     "winston": "^2.4.3",
